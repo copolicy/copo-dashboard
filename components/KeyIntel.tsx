@@ -1,5 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { fetchKeyIntel } from "@/lib/data";
+import type { KeyIntelCategory } from "@/lib/types";
+
+type Item = { client: string; text: string };
+
+// Shown only until the key_intel table exists in Supabase.
+
 const NEEDS_DECISION = [
   {
     client: "Mochi",
@@ -55,6 +63,7 @@ function IntelSection({
   return (
     <div className="intel-section">
       <div className="intel-title">{title}</div>
+      {items.length === 0 && <div className="empty-state">Nothing here yet.</div>}
       {items.map((item, i) => (
         <div className="intel-row" key={i}>
           <div className="intel-client-tag">{item.client}</div>
@@ -65,7 +74,39 @@ function IntelSection({
   );
 }
 
+const SECTIONS: { category: KeyIntelCategory; title: string }[] = [
+  { category: "needs_decision", title: "Needs a decision" },
+  { category: "new_this_week", title: "New this week" },
+  { category: "decision_locked", title: "Decisions locked" },
+];
+
+const FALLBACK: Record<KeyIntelCategory, Item[]> = {
+  needs_decision: NEEDS_DECISION,
+  new_this_week: NEW_THIS_WEEK,
+  decision_locked: DECISIONS_LOCKED,
+};
+
 export default function KeyIntel() {
+  const [items, setItems] = useState<Record<KeyIntelCategory, Item[]> | null>(
+    null
+  );
+
+  useEffect(() => {
+    fetchKeyIntel().then((rows) => {
+      if (rows === null) {
+        setItems(FALLBACK);
+        return;
+      }
+      const grouped: Record<KeyIntelCategory, Item[]> = {
+        needs_decision: [],
+        new_this_week: [],
+        decision_locked: [],
+      };
+      for (const r of rows) grouped[r.category]?.push(r);
+      setItems(grouped);
+    });
+  }, []);
+
   return (
     <div>
       <div className="page-header">
@@ -74,9 +115,13 @@ export default function KeyIntel() {
           <div className="week-title">Key intel</div>
         </div>
       </div>
-      <IntelSection title="Needs a decision" items={NEEDS_DECISION} />
-      <IntelSection title="New this week" items={NEW_THIS_WEEK} />
-      <IntelSection title="Decisions locked" items={DECISIONS_LOCKED} />
+      {items === null ? (
+        <div className="empty-state">Loading…</div>
+      ) : (
+        SECTIONS.map(({ category, title }) => (
+          <IntelSection key={category} title={title} items={items[category]} />
+        ))
+      )}
     </div>
   );
 }

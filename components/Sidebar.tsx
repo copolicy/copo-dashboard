@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Contractor, Project, Status } from "@/lib/types";
 
 export type View =
@@ -22,6 +23,7 @@ function contractEndingSoon(contractor: Contractor) {
 }
 
 const FIXED_SECTION_ORDER = ["Active clients", "Wrapping", "Pipeline", "Internal"];
+export const ARCHIVED_SECTION = "Archived";
 
 function dotClass(status: Status) {
   if (status === "retainer") return "dot-retainer";
@@ -32,11 +34,13 @@ function dotClass(status: Status) {
 
 export function sectionsInOrder(projects: Project[]): string[] {
   const present = Array.from(new Set(projects.map((p) => p.section)));
-  const ordered = FIXED_SECTION_ORDER.filter(
-    (s) => present.includes(s) || s === "Internal"
-  );
-  const extra = present.filter((s) => !FIXED_SECTION_ORDER.includes(s)).sort();
-  return [...ordered, ...extra];
+  // The four core sections always show, even when empty, so there is
+  // always somewhere to add a client. Archived always sorts last.
+  const extra = present
+    .filter((s) => !FIXED_SECTION_ORDER.includes(s) && s !== ARCHIVED_SECTION)
+    .sort();
+  const archived = present.includes(ARCHIVED_SECTION) ? [ARCHIVED_SECTION] : [];
+  return [...FIXED_SECTION_ORDER, ...extra, ...archived];
 }
 
 export default function Sidebar({
@@ -57,6 +61,7 @@ export default function Sidebar({
   onAddSection: () => void;
 }) {
   const sections = sectionsInOrder(projects);
+  const [archivedOpen, setArchivedOpen] = useState(false);
   const endingSoonCount = contractors.filter(contractEndingSoon).length;
 
   return (
@@ -98,9 +103,37 @@ export default function Sidebar({
 
       {sections.map((section) => {
         const sectionProjects = projects.filter((p) => p.section === section);
+        const isArchived = section === ARCHIVED_SECTION;
+        if (isArchived && !archivedOpen) {
+          return (
+            <div className="nav-group" key={section}>
+              <button
+                className="nav-label nav-label-toggle"
+                onClick={() => setArchivedOpen(true)}
+              >
+                <span>
+                  {section} · {sectionProjects.length}
+                </span>
+                <span className="nav-caret">▸</span>
+              </button>
+            </div>
+          );
+        }
         return (
           <div className="nav-group" key={section}>
-            <div className="nav-label">{section}</div>
+            {isArchived ? (
+              <button
+                className="nav-label nav-label-toggle"
+                onClick={() => setArchivedOpen(false)}
+              >
+                <span>
+                  {section} · {sectionProjects.length}
+                </span>
+                <span className="nav-caret">▾</span>
+              </button>
+            ) : (
+              <div className="nav-label">{section}</div>
+            )}
             {sectionProjects.map((p) => (
               <div
                 className={`nav-item ${
@@ -117,12 +150,14 @@ export default function Sidebar({
                 </div>
               </div>
             ))}
-            <button
-              className="nav-add"
-              onClick={() => onAddClient(section)}
-            >
-              + Add client
-            </button>
+            {!isArchived && (
+              <button
+                className="nav-add"
+                onClick={() => onAddClient(section)}
+              >
+                {section === "Active clients" ? "+ New project intake" : "+ Add client"}
+              </button>
+            )}
           </div>
         );
       })}

@@ -1,11 +1,16 @@
 import { supabase } from "./supabase";
 import type {
+  Blocker,
   Contractor,
+  IntakeDraft,
+  KeyIntelItem,
+  Milestone,
   MilestoneKind,
   PipelineStage,
   Project,
   ProjectPhase,
   Status,
+  Task,
   Week,
 } from "./types";
 
@@ -205,4 +210,74 @@ export async function deleteContractor(contractorId: string) {
     .eq("id", contractorId);
 
   if (error) throw error;
+}
+
+// Creates a project from the intake form, along with its milestones,
+// tasks and blockers, and returns it in the same shape fetchProjects uses.
+export async function createProjectFromIntake(
+  draft: IntakeDraft
+): Promise<Project> {
+  const { data: project, error } = await supabase
+    .from("projects")
+    .insert({
+      name: draft.name,
+      section: "Active clients",
+      status: draft.status,
+      team: draft.team,
+      project_phase: draft.project_phase,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+
+  const projectId = project.id as string;
+
+  async function insertRows<T>(table: string, rows: object[]): Promise<T[]> {
+    if (rows.length === 0) return [];
+    const { data, error } = await supabase.from(table).insert(rows).select();
+    if (error) throw error;
+    return (data ?? []) as T[];
+  }
+
+  const [milestones, tasks, blockers] = await Promise.all([
+    insertRows<Milestone>(
+      "timeline_milestones",
+      draft.milestones.map((m) => ({ project_id: projectId, ...m }))
+    ),
+    insertRows<Task>(
+      "tasks",
+      draft.tasks.map((t) => ({
+        project_id: projectId,
+        ...t,
+        manually_edited: true,
+      }))
+    ),
+    insertRows<Blocker>(
+      "blockers",
+      draft.blockers.map((text) => ({
+        project_id: projectId,
+        text,
+        manually_edited: true,
+      }))
+    ),
+  ]);
+
+  return {
+    ...(project as Project),
+    timeline_milestones: milestones,
+    tasks,
+    blockers,
+  };
+}
+
+// Key intel lives in its own table so it can be refreshed from meeting
+// notes without a code change. Returns null if the table does not exist yet.
+export async function fetchKeyIntel(): Promise<KeyIntelItem[] | null> {
+  const { data, error } = await supabase
+    .from("key_intel")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) return null;
+  return (data ?? []) as KeyIntelItem[];
 }

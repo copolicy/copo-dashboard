@@ -69,3 +69,25 @@ export interface Contractor {
   full_time: boolean;
   created_at: string;
 }
+
+// A project as filled in on the intake form, before it is saved.
+export interface IntakeDraft {
+  name: string;
+  status: Status;
+  project_phase: ProjectPhase | null;
+  team: string[];
+  milestones: { title: string; date: string; kind: MilestoneKind }[];
+  tasks: { title: string; week: Week }[];
+  blockers: string[];
+}
+
+export type KeyIntelCategory = "needs_decision" | "new_this_week" | "decision_locked";
+
+export interface KeyIntelItem {
+  id: string;
+  category: KeyIntelCategory;
+  client: string;
+  text: string;
+  sort_order: number;
+  created_at: string;
+}

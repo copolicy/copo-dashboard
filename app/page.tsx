@@ -1,17 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Sidebar, { sectionsInOrder, type View } from "@/components/Sidebar";
+import Sidebar, {
+  ARCHIVED_SECTION,
+  sectionsInOrder,
+  type View,
+} from "@/components/Sidebar";
 import ProjectCardList from "@/components/ProjectCardList";
 import KeyIntel from "@/components/KeyIntel";
 import ContractorsView from "@/components/ContractorsView";
 import CalendarView from "@/components/CalendarView";
 import AddClientModal from "@/components/AddClientModal";
+import IntakeModal from "@/components/IntakeModal";
 import {
   addContractor,
   addMilestone,
   addProject,
   addTask,
+  createProjectFromIntake,
   deleteContractor,
   deleteMilestone,
   deleteTask,
@@ -29,6 +35,8 @@ import {
 } from "@/lib/data";
 import type {
   Contractor,
+  IntakeDraft,
+  Milestone,
   MilestoneKind,
   PipelineStage,
   Project,
@@ -49,6 +57,8 @@ export default function Home() {
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSection, setModalSection] = useState("Active clients");
+  const [intakeOpen, setIntakeOpen] = useState(false);
+  const [intakeKey, setIntakeKey] = useState(0);
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [calendarNotice, setCalendarNotice] = useState<string | null>(null);
 
@@ -256,33 +266,58 @@ export default function Home() {
       }));
 
       const projectName = projects.find((p) => p.id === projectId)?.name ?? "";
-      fetch("/api/calendar/push", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          milestoneId: milestone.id,
-          title,
-          date,
-          projectName,
-        }),
-      })
-        .then((res) => res.json())
-        .then((result) => {
-          if (result.pushed) {
-            updateProject(projectId, (p) => ({
-              ...p,
-              timeline_milestones: p.timeline_milestones.map((m) =>
-                m.id === milestone.id ? { ...m, gcal_event_id: result.eventId } : m
-              ),
-            }));
-          }
-        })
-        .catch(() => {
-          // Calendar push is best-effort; not connected or a transient
-          // failure shouldn't block the milestone itself from saving.
-        });
+      pushMilestoneToCalendar(projectId, milestone, projectName);
     } catch (e) {
       setSyncError(String((e as Error).message ?? e));
+    }
+  }
+
+  function pushMilestoneToCalendar(
+    projectId: string,
+    milestone: Milestone,
+    projectName: string
+  ) {
+    fetch("/api/calendar/push", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        milestoneId: milestone.id,
+        title: milestone.title,
+        date: milestone.date,
+        projectName,
+      }),
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.pushed) {
+          updateProject(projectId, (p) => ({
+            ...p,
+            timeline_milestones: p.timeline_milestones.map((m) =>
+              m.id === milestone.id ? { ...m, gcal_event_id: result.eventId } : m
+            ),
+          }));
+        }
+      })
+      .catch(() => {
+        // Calendar push is best-effort; not connected or a transient
+        // failure shouldn't block the milestone itself from saving.
+      });
+  }
+
+  function openIntake() {
+    setIntakeKey((k) => k + 1);
+    setIntakeOpen(true);
+  }
+
+  async function handleIntakeSubmit(draft: IntakeDraft) {
+    // Errors propagate to the form so it can show them and keep the draft.
+    const project = await createProjectFromIntake(draft);
+    setProjects((prev) => [...prev, project]);
+    setIntakeOpen(false);
+    setView({ type: "overview" });
+    setExpandedIds((prev) => new Set(prev).add(project.id));
+    for (const m of project.timeline_milestones) {
+      pushMilestoneToCalendar(project.id, m, project.name);
     }
   }
 
@@ -374,10 +409,12 @@ export default function Home() {
         p.section === "Pipeline" &&
         !(p.pipeline_stage && CLOSED_PIPELINE_STAGES.includes(p.pipeline_stage))
     ).length;
-    const openBlockers = projects.reduce(
-      (sum, p) => sum + p.blockers.filter((b) => !b.resolved).length,
-      0
-    );
+    const openBlockers = projects
+      .filter((p) => p.section !== ARCHIVED_SECTION)
+      .reduce(
+        (sum, p) => sum + p.blockers.filter((b) => !b.resolved).length,
+        0
+      );
     return { activeClients, wrapping, pipeline, openBlockers };
   }, [projects]);
 
@@ -412,6 +449,10 @@ export default function Home() {
         }}
         onSelectProject={selectProject}
         onAddClient={(section) => {
+          if (section === "Active clients") {
+            openIntake();
+            return;
+          }
           setModalSection(section);
           setModalOpen(true);
         }}
@@ -464,7 +505,7 @@ export default function Home() {
           />
         ) : view.type === "calendar" ? (
           <CalendarView
-            projects={projects}
+            projects={projects.filter((p) => p.section !== ARCHIVED_SECTION)}
             onAddMilestone={handleAddMilestone}
             onSelectProject={selectProject}
             calendarConnected={calendarConnected}
@@ -475,6 +516,11 @@ export default function Home() {
               <div className="header-left">
                 <div className="week-label">State of Affairs</div>
                 <div className="week-title">Overview</div>
+              </div>
+              <div className="header-actions">
+                <button className="btn btn-primary" onClick={openIntake}>
+                  + New project intake
+                </button>
               </div>
             </div>
             <div className="stats">
@@ -527,6 +573,13 @@ export default function Home() {
           </>
         )}
       </main>
+
+      <IntakeModal
+        key={intakeKey}
+        open={intakeOpen}
+        onClose={() => setIntakeOpen(false)}
+        onSubmit={handleIntakeSubmit}
+      />
 
       <AddClientModal
         key={`${modalSection}-${modalOpen}`}

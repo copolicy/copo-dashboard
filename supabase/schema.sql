@@ -81,3 +81,14 @@ alter table google_calendar_tokens disable row level security;
 
 -- Track which calendar event backs each milestone/invoice, so we can update/delete it later.
 alter table timeline_milestones add column gcal_event_id text;
+
+-- Key intel (from meeting notes). Previously hardcoded in components/KeyIntel.tsx.
+create table key_intel (
+  id uuid primary key default gen_random_uuid(),
+  category text not null, -- needs_decision | new_this_week | decision_locked
+  client text not null,
+  text text not null,
+  sort_order int not null default 0,
+  created_at timestamptz default now()
+);
+alter table key_intel disable row level security;
