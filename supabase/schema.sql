@@ -95,3 +95,42 @@ alter table key_intel disable row level security;
 
 -- Per-client workspace link (Figma, Drive, Notion...).
 alter table projects add column workspace_url text;
+
+-- Task due dates (tasks with a date sort themselves into This / Next week).
+alter table tasks add column due_date date;
+
+-- Client pages: important links, Granola meeting notes, insights.
+create table client_links (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references projects(id) on delete cascade,
+  label text not null,
+  url text not null,
+  created_at timestamptz default now()
+);
+alter table client_links disable row level security;
+
+create table client_meetings (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references projects(id) on delete cascade,
+  granola_id text not null,
+  title text not null,
+  met_at timestamptz not null,
+  points text[] not null default '{}',
+  next_steps text[] not null default '{}',
+  url text,
+  created_at timestamptz default now(),
+  unique (project_id, granola_id)
+);
+alter table client_meetings disable row level security;
+
+create table client_insights (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references projects(id) on delete cascade,
+  kind text not null default 'insight', -- insight | risk | opportunity
+  text text not null,
+  sort_order int not null default 0,
+  created_at timestamptz default now()
+);
+alter table client_insights disable row level security;
+
+alter table projects add column granola_synced_at timestamptz;

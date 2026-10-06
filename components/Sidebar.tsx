@@ -8,7 +8,8 @@ export type View =
   | { type: "intel" }
   | { type: "contractors" }
   | { type: "calendar" }
-  | { type: "section"; section: string };
+  | { type: "section"; section: string }
+  | { type: "client"; projectId: string };
 
 const CONTRACT_FLAG_DAYS = 14;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -22,7 +23,7 @@ function contractEndingSoon(contractor: Contractor) {
   return daysOut >= 0 && daysOut <= CONTRACT_FLAG_DAYS;
 }
 
-const FIXED_SECTION_ORDER = ["Active clients", "Wrapping", "Pipeline", "Internal"];
+const FIXED_SECTION_ORDER = ["Active clients", "Internal", "Wrapping", "Pipeline"];
 export const ARCHIVED_SECTION = "Archived";
 
 function dotClass(status: Status) {
@@ -132,14 +133,18 @@ export default function Sidebar({
                 <span className="nav-caret">▾</span>
               </button>
             ) : (
-              <div className="nav-label">{section}</div>
+              <button
+                className="nav-label nav-label-link"
+                onClick={() => onSelectView({ type: "section", section })}
+                title={`See all ${section}`}
+              >
+                {section}
+              </button>
             )}
             {sectionProjects.map((p) => (
               <div
                 className={`nav-item ${
-                  view.type === "section" && view.section === section
-                    ? "active"
-                    : ""
+                  view.type === "client" && view.projectId === p.id ? "active" : ""
                 }`}
                 key={p.id}
                 onClick={() => onSelectProject(section, p.id)}

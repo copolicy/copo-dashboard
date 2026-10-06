@@ -1,6 +1,8 @@
 import { supabase } from "./supabase";
 import type {
   Blocker,
+  ClientDetail,
+  ClientLink,
   Contractor,
   IntakeDraft,
   KeyIntelItem,
@@ -87,10 +89,21 @@ export async function setWorkspaceUrl(projectId: string, url: string | null) {
   if (error) throw error;
 }
 
-export async function addTask(projectId: string, title: string, week: Week) {
+export async function addTask(
+  projectId: string,
+  title: string,
+  week: Week,
+  dueDate: string | null = null
+) {
   const { data, error } = await supabase
     .from("tasks")
-    .insert({ project_id: projectId, title, week, manually_edited: true })
+    .insert({
+      project_id: projectId,
+      title,
+      week,
+      due_date: dueDate,
+      manually_edited: true,
+    })
     .select()
     .single();
 
@@ -120,6 +133,15 @@ export async function setTaskWeek(taskId: string, week: Week) {
   const { error } = await supabase
     .from("tasks")
     .update({ week, manually_edited: true })
+    .eq("id", taskId);
+
+  if (error) throw error;
+}
+
+export async function setTaskDueDate(taskId: string, dueDate: string | null) {
+  const { error } = await supabase
+    .from("tasks")
+    .update({ due_date: dueDate, manually_edited: true })
     .eq("id", taskId);
 
   if (error) throw error;
@@ -212,6 +234,27 @@ export async function addContractor(input: {
   return data as Contractor;
 }
 
+export async function updateContractor(
+  contractorId: string,
+  input: {
+    name: string;
+    role: string | null;
+    start_date: string | null;
+    end_date: string | null;
+    full_time: boolean;
+  }
+) {
+  const { data, error } = await supabase
+    .from("contractors")
+    .update(input)
+    .eq("id", contractorId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Contractor;
+}
+
 export async function deleteContractor(contractorId: string) {
   const { error } = await supabase
     .from("contractors")
@@ -290,4 +333,46 @@ export async function fetchKeyIntel(): Promise<KeyIntelItem[] | null> {
     .order("created_at", { ascending: true });
   if (error) return null;
   return (data ?? []) as KeyIntelItem[];
+}
+
+// Everything shown on a client's own page beyond the project card.
+export async function fetchClientDetail(projectId: string): Promise<ClientDetail> {
+  const [links, meetings, insights] = await Promise.all([
+    supabase
+      .from("client_links")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("client_meetings")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("met_at", { ascending: false }),
+    supabase
+      .from("client_insights")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("sort_order", { ascending: true }),
+  ]);
+  for (const r of [links, meetings, insights]) if (r.error) throw r.error;
+  return {
+    links: (links.data ?? []) as ClientDetail["links"],
+    meetings: (meetings.data ?? []) as ClientDetail["meetings"],
+    insights: (insights.data ?? []) as ClientDetail["insights"],
+  };
+}
+
+export async function addClientLink(projectId: string, label: string, url: string) {
+  const { data, error } = await supabase
+    .from("client_links")
+    .insert({ project_id: projectId, label, url })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as ClientLink;
+}
+
+export async function deleteClientLink(linkId: string) {
+  const { error } = await supabase.from("client_links").delete().eq("id", linkId);
+  if (error) throw error;
 }

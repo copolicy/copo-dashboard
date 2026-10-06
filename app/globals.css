@@ -1323,3 +1323,332 @@ select {
   white-space: nowrap;
   max-width: 100%;
 }
+
+/* timeline items surfaced in the This week / Next week columns */
+.due-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  margin-right: 6px;
+  border-radius: 4px;
+  background: var(--active-bg);
+  color: var(--ink2);
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.due-invoice .due-tag {
+  background: var(--warn-light);
+  color: var(--warn-text);
+}
+
+/* task due dates */
+.task-row .task-due {
+  flex: 0 0 auto;
+}
+.task-row .task-due .date-picker-trigger {
+  width: auto;
+  padding: 1px 6px;
+  border: none;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--active-bg);
+  color: var(--ink2);
+}
+.task-row .task-due.empty .date-picker-trigger {
+  background: none;
+  font-weight: 500;
+  color: var(--ink3);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.task-row:hover .task-due.empty .date-picker-trigger,
+.task-row .task-due.empty .date-picker-trigger:focus-visible {
+  opacity: 1;
+}
+.task-row .task-due.overdue .date-picker-trigger {
+  background: var(--danger-light);
+  color: var(--danger-text);
+}
+.add-task-row .add-task-due {
+  flex: 0 0 auto;
+}
+.add-task-row .add-task-due .date-picker-trigger {
+  width: auto;
+  padding: 5px 9px;
+  background: var(--card);
+  color: var(--ink3);
+  white-space: nowrap;
+}
+.add-task-row .add-task-due.has-date .date-picker-trigger {
+  color: var(--ink);
+  border-color: var(--ink3);
+}
+.date-picker-clear {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: none;
+  font-size: 12px;
+  color: var(--ink2);
+  cursor: pointer;
+}
+.date-picker-clear:hover {
+  color: var(--danger);
+}
+
+/* editable contractors */
+.contractor-row-clickable {
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+.contractor-row-clickable:hover {
+  background: var(--active-bg);
+}
+.contractor-edit-hint {
+  font-size: 11px;
+  color: var(--ink3);
+  opacity: 0;
+  transition: opacity 0.1s;
+  flex-shrink: 0;
+}
+.contractor-row-clickable:hover .contractor-edit-hint {
+  opacity: 1;
+}
+.contractor-modal {
+  width: min(380px, calc(100vw - 32px));
+}
+.contractor-modal .date-picker {
+  flex: none;
+  width: 100%;
+}
+.contractor-modal-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 10px;
+}
+.contractor-modal-actions {
+  align-items: center;
+}
+.btn-danger-quiet {
+  border-color: transparent;
+  color: var(--danger);
+  background: transparent;
+}
+.btn-danger-quiet:hover {
+  background: var(--danger-light);
+  color: var(--danger-text);
+}
+
+/* sidebar section labels open the section view */
+.nav-label-link {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: inherit;
+}
+.nav-label-link:hover {
+  color: var(--ink2);
+  background: var(--active-bg);
+}
+
+/* client page */
+.client-team {
+  font-size: 12px;
+  color: var(--ink3);
+  margin-top: 2px;
+}
+.client-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.client-main,
+.client-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.client-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.client-panel .intel-title {
+  margin-bottom: 10px;
+}
+.client-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.client-synced {
+  font-size: 11px;
+  color: var(--ink3);
+}
+.meeting-note {
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.meeting-note:first-of-type {
+  border-top: none;
+  padding-top: 2px;
+}
+.meeting-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.meeting-date {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink3);
+  white-space: nowrap;
+}
+.meeting-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.meeting-open {
+  font-size: 11px;
+  margin-left: auto;
+}
+.meeting-points {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--ink2);
+  line-height: 1.5;
+}
+.meeting-points li + li {
+  margin-top: 3px;
+}
+.meeting-sub {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin: 8px 0 4px;
+}
+.meeting-steps li::marker {
+  content: "→  ";
+  color: var(--ink3);
+}
+.insight {
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+}
+.insight:nth-of-type(1) {
+  border-top: none;
+  padding-top: 0;
+}
+.insight-kind {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  background: var(--blue-light);
+  color: var(--blue-text);
+}
+.insight-risk .insight-kind {
+  background: var(--warn-light);
+  color: var(--warn-text);
+}
+.insight-opportunity .insight-kind {
+  background: var(--accent-light);
+  color: var(--accent-text);
+}
+.insight-text {
+  font-size: 13px;
+  color: var(--ink2);
+  line-height: 1.5;
+}
+.client-links {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+}
+.client-links li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+}
+.client-links li:hover {
+  background: var(--active-bg);
+}
+.client-links li:hover .task-delete {
+  opacity: 1;
+}
+.client-links a {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  text-decoration: none;
+  font-size: 13px;
+  color: var(--ink);
+}
+.client-link-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.client-link-site {
+  font-size: 11px;
+  color: var(--blue);
+  white-space: nowrap;
+}
+.client-link-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.client-link-form-row {
+  display: flex;
+  gap: 6px;
+}
+.client-link-form-row .add-task-input {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 1000px) {
+  .client-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* let add-task inputs shrink so the date / link / add buttons always fit */
+.add-task-row .add-task-input {
+  min-width: 0;
+}
+/* date pickers inside stacked label fields: fixed width, natural height */
+.date-field-label .date-picker {
+  flex: none;
+  width: 135px;
+}
+.add-contractor-row .add-milestone-row {
+  align-items: flex-end;
+}

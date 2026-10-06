@@ -64,6 +64,76 @@ function isFlagged(dateIso: string, windowDays = 7) {
   return daysOut >= 0 && daysOut <= windowDays;
 }
 
+// Which work week (Mon to Sun) a YYYY-MM-DD date falls in, relative to today.
+function weekBucket(iso: string): "this" | "next" | null {
+  const [y, m, d] = iso.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+  const diffDays = Math.round((date.getTime() - monday.getTime()) / DAY_MS);
+  if (diffDays >= 0 && diffDays < 7) return "this";
+  if (diffDays >= 7 && diffDays < 14) return "next";
+  return null;
+}
+
+// Where a task shows: by its due date when it has one (overdue counts as
+// this week), otherwise by the week it was added to.
+function taskWeek(task: Task): Week {
+  if (!task.due_date) return task.week;
+  const [y, m, d] = task.due_date.split("-").map(Number);
+  const due = new Date(y, m - 1, d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+  if (due < monday) return "this";
+  return weekBucket(task.due_date) ?? task.week;
+}
+
+function isOverdue(iso: string) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(y, m - 1, d) < today;
+}
+
+function formatDue(iso: string) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+// A timeline item shown inside a week column. Ticking it ticks the
+// milestone itself, so the timeline and the week stay in sync.
+function DueRow({
+  milestone,
+  onToggle,
+}: {
+  milestone: Milestone;
+  onToggle: () => void;
+}) {
+  return (
+    <div className={`task-row due-row ${milestone.kind === "invoice" ? "due-invoice" : ""}`}>
+      <button
+        className={`task-check ${milestone.completed ? "checked" : ""}`}
+        onClick={onToggle}
+        aria-label="Toggle timeline item"
+      />
+      <div className={`task-label ${milestone.completed ? "checked" : ""}`}>
+        <span className="due-tag">
+          {milestone.kind === "invoice" ? "Invoice" : "Due"} {formatDue(milestone.date)}
+        </span>
+        <LinkedText text={milestone.title} />
+      </div>
+    </div>
+  );
+}
+
 // Pasting a link over selected words turns those words into the link.
 function pasteLinkOverSelection(
   e: React.ClipboardEvent<HTMLInputElement>,
@@ -84,6 +154,7 @@ function TaskRow({
   onToggle,
   onDelete,
   onEdit,
+  onChangeDue,
   onMoveWeek,
   moveDirection,
 }: {
@@ -91,6 +162,7 @@ function TaskRow({
   onToggle: () => void;
   onDelete: () => void;
   onEdit: (title: string) => void;
+  onChangeDue: (dueDate: string | null) => void;
   onMoveWeek: () => void;
   moveDirection: "next" | "prev";
 }) {
@@ -136,14 +208,26 @@ function TaskRow({
           <LinkedText text={task.title} />
         </div>
       )}
-      <button
-        className="task-move"
-        onClick={onMoveWeek}
-        title={moveDirection === "next" ? "Move to next week" : "Move to this week"}
-        aria-label="Move to other week"
-      >
-        {moveDirection === "next" ? "→" : "←"}
-      </button>
+      <DatePicker
+        value={task.due_date ?? ""}
+        onChange={(d) => onChangeDue(d)}
+        onClear={() => onChangeDue(null)}
+        placeholder="+ Due"
+        format={(iso) => `Due ${formatDue(iso)}`}
+        className={`task-due ${task.due_date ? "has-date" : "empty"} ${
+          task.due_date && !task.done && isOverdue(task.due_date) ? "overdue" : ""
+        }`}
+      />
+      {!task.due_date && (
+        <button
+          className="task-move"
+          onClick={onMoveWeek}
+          title={moveDirection === "next" ? "Move to next week" : "Move to this week"}
+          aria-label="Move to other week"
+        >
+          {moveDirection === "next" ? "→" : "←"}
+        </button>
+      )}
       <button className="task-delete" onClick={onDelete}>
         ×
       </button>
@@ -154,23 +238,30 @@ function TaskRow({
 function TaskColumn({
   label,
   tasks,
+  due,
+  onToggleDue,
   onToggle,
   onDelete,
   onAdd,
   onEdit,
+  onChangeDue,
   onMoveWeek,
   moveDirection,
 }: {
   label: string;
   tasks: Task[];
+  due: Milestone[];
+  onToggleDue: (id: string, completed: boolean) => void;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
-  onAdd: (title: string) => void;
+  onAdd: (title: string, dueDate: string | null) => void;
   onEdit: (id: string, title: string) => void;
+  onChangeDue: (id: string, dueDate: string | null) => void;
   onMoveWeek: (id: string) => void;
   moveDirection: "next" | "prev";
 }) {
   const [value, setValue] = useState("");
+  const [dueDraft, setDueDraft] = useState("");
   const [link, setLink] = useState("");
   const [linkOpen, setLinkOpen] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -180,8 +271,9 @@ function TaskColumn({
   function submit() {
     const title = withLink(value, link);
     if (!title) return;
-    onAdd(title);
+    onAdd(title, dueDraft || null);
     setValue("");
+    setDueDraft("");
     setLink("");
     setLinkOpen(false);
   }
@@ -190,6 +282,13 @@ function TaskColumn({
     <div>
       <div className="col-head">{label}</div>
       <div className="task-list">
+        {due.map((m) => (
+          <DueRow
+            key={m.id}
+            milestone={m}
+            onToggle={() => onToggleDue(m.id, !m.completed)}
+          />
+        ))}
         {activeTasks.map((t) => (
           <TaskRow
             key={t.id}
@@ -197,6 +296,7 @@ function TaskColumn({
             onToggle={() => onToggle(t.id)}
             onDelete={() => onDelete(t.id)}
             onEdit={(title) => onEdit(t.id, title)}
+            onChangeDue={(d) => onChangeDue(t.id, d)}
             onMoveWeek={() => onMoveWeek(t.id)}
             moveDirection={moveDirection}
           />
@@ -219,6 +319,7 @@ function TaskColumn({
                   onToggle={() => onToggle(t.id)}
                   onDelete={() => onDelete(t.id)}
                   onEdit={(title) => onEdit(t.id, title)}
+                  onChangeDue={(d) => onChangeDue(t.id, d)}
                   onMoveWeek={() => onMoveWeek(t.id)}
                   moveDirection={moveDirection}
                 />
@@ -237,6 +338,14 @@ function TaskColumn({
           onKeyDown={(e) => {
             if (e.key === "Enter") submit();
           }}
+        />
+        <DatePicker
+          value={dueDraft}
+          onChange={setDueDraft}
+          onClear={() => setDueDraft("")}
+          placeholder="Due"
+          format={formatDue}
+          className={`add-task-due ${dueDraft ? "has-date" : ""}`}
         />
         <button
           className={`add-task-btn add-link-btn ${linkOpen || link ? "on" : ""}`}
@@ -315,7 +424,7 @@ function TimelineSection({
           <div className="milestone-date">{formatDate(m.date)}</div>
           <div className="milestone-label">
             {m.kind === "invoice" && (
-              <span className="milestone-kind">💰 Invoice — </span>
+              <span className="milestone-kind">💰 Invoice: </span>
             )}
             <LinkedText text={m.title} />
           </div>
@@ -364,6 +473,7 @@ export default function ProjectCard({
   onDeleteTask,
   onAddTask,
   onEditTask,
+  onChangeTaskDue,
   onMoveTaskWeek,
   onBlockerTextChange,
   onResolveBlocker,
@@ -380,8 +490,9 @@ export default function ProjectCard({
   onToggleExpand: () => void;
   onToggleTask: (taskId: string, done: boolean) => void;
   onDeleteTask: (taskId: string) => void;
-  onAddTask: (week: Week, title: string) => void;
+  onAddTask: (week: Week, title: string, dueDate: string | null) => void;
   onEditTask: (taskId: string, title: string) => void;
+  onChangeTaskDue: (taskId: string, dueDate: string | null) => void;
   onMoveTaskWeek: (taskId: string, week: Week) => void;
   onBlockerTextChange: (blockerId: string, text: string) => void;
   onResolveBlocker: (blockerId: string) => void;
@@ -401,8 +512,10 @@ export default function ProjectCard({
     }
   }, [expanded]);
 
-  const thisWeek = project.tasks.filter((t) => t.week === "this");
-  const nextWeek = project.tasks.filter((t) => t.week === "next");
+  const byDue = (a: Task, b: Task) =>
+    (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999");
+  const thisWeek = project.tasks.filter((t) => taskWeek(t) === "this").sort(byDue);
+  const nextWeek = project.tasks.filter((t) => taskWeek(t) === "next").sort(byDue);
   const milestones = [...project.timeline_milestones].sort((a, b) =>
     a.date.localeCompare(b.date)
   );
@@ -502,26 +615,32 @@ export default function ProjectCard({
             <TaskColumn
               label="This week"
               tasks={thisWeek}
+              due={milestones.filter((m) => weekBucket(m.date) === "this")}
+              onToggleDue={onToggleMilestoneCompleted}
               onToggle={(id) => {
                 const t = project.tasks.find((x) => x.id === id);
                 if (t) onToggleTask(id, !t.done);
               }}
               onDelete={onDeleteTask}
-              onAdd={(title) => onAddTask("this", title)}
+              onAdd={(title, due) => onAddTask(due ? (weekBucket(due) ?? "this") : "this", title, due)}
               onEdit={onEditTask}
+              onChangeDue={onChangeTaskDue}
               onMoveWeek={(id) => onMoveTaskWeek(id, "next")}
               moveDirection="next"
             />
             <TaskColumn
               label="Next week"
               tasks={nextWeek}
+              due={milestones.filter((m) => weekBucket(m.date) === "next")}
+              onToggleDue={onToggleMilestoneCompleted}
               onToggle={(id) => {
                 const t = project.tasks.find((x) => x.id === id);
                 if (t) onToggleTask(id, !t.done);
               }}
               onDelete={onDeleteTask}
-              onAdd={(title) => onAddTask("next", title)}
+              onAdd={(title, due) => onAddTask(due ? (weekBucket(due) ?? "next") : "next", title, due)}
               onEdit={onEditTask}
+              onChangeDue={onChangeTaskDue}
               onMoveWeek={(id) => onMoveTaskWeek(id, "this")}
               moveDirection="prev"
             />

@@ -19,6 +19,7 @@ export default function ProjectCardList({
   onDeleteTask,
   onAddTask,
   onEditTask,
+  onChangeTaskDue,
   onMoveTaskWeek,
   onBlockerTextChange,
   onResolveBlocker,
@@ -37,8 +38,14 @@ export default function ProjectCardList({
   onToggleExpand: (id: string) => void;
   onToggleTask: (projectId: string, taskId: string, done: boolean) => void;
   onDeleteTask: (projectId: string, taskId: string) => void;
-  onAddTask: (projectId: string, week: Week, title: string) => void;
+  onAddTask: (
+    projectId: string,
+    week: Week,
+    title: string,
+    dueDate: string | null
+  ) => void;
   onEditTask: (projectId: string, taskId: string, title: string) => void;
+  onChangeTaskDue: (projectId: string, taskId: string, dueDate: string | null) => void;
   onMoveTaskWeek: (projectId: string, taskId: string, week: Week) => void;
   onBlockerTextChange: (
     projectId: string,
@@ -83,8 +90,9 @@ export default function ProjectCardList({
           onToggleExpand={() => onToggleExpand(project.id)}
           onToggleTask={(taskId, done) => onToggleTask(project.id, taskId, done)}
           onDeleteTask={(taskId) => onDeleteTask(project.id, taskId)}
-          onAddTask={(week, title) => onAddTask(project.id, week, title)}
+          onAddTask={(week, title, due) => onAddTask(project.id, week, title, due)}
           onEditTask={(taskId, title) => onEditTask(project.id, taskId, title)}
+          onChangeTaskDue={(taskId, due) => onChangeTaskDue(project.id, taskId, due)}
           onMoveTaskWeek={(taskId, week) =>
             onMoveTaskWeek(project.id, taskId, week)
           }

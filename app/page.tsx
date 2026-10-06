@@ -12,6 +12,7 @@ import ContractorsView from "@/components/ContractorsView";
 import CalendarView from "@/components/CalendarView";
 import AddClientModal from "@/components/AddClientModal";
 import IntakeModal from "@/components/IntakeModal";
+import ClientPage from "@/components/ClientPage";
 import { plainText } from "@/components/LinkedText";
 import {
   addContractor,
@@ -30,8 +31,10 @@ import {
   setPipelineStage,
   setProjectPhase,
   setTaskDone,
+  setTaskDueDate,
   setTaskWeek,
   setWorkspaceUrl,
+  updateContractor,
   updateBlockerText,
   updateTaskTitle,
 } from "@/lib/data";
@@ -133,9 +136,14 @@ export default function Home() {
     }
   }
 
-  async function handleAddTask(projectId: string, week: Week, title: string) {
+  async function handleAddTask(
+    projectId: string,
+    week: Week,
+    title: string,
+    dueDate: string | null = null
+  ) {
     try {
-      const task = await addTask(projectId, title, week);
+      const task = await addTask(projectId, title, week, dueDate);
       updateProject(projectId, (p) => ({ ...p, tasks: [...p.tasks, task] }));
     } catch (e) {
       setSyncError(String((e as Error).message ?? e));
@@ -153,6 +161,22 @@ export default function Home() {
     }));
     try {
       await updateTaskTitle(taskId, title);
+    } catch (e) {
+      setSyncError(String((e as Error).message ?? e));
+    }
+  }
+
+  async function handleChangeTaskDue(
+    projectId: string,
+    taskId: string,
+    dueDate: string | null
+  ) {
+    updateProject(projectId, (p) => ({
+      ...p,
+      tasks: p.tasks.map((t) => (t.id === taskId ? { ...t, due_date: dueDate } : t)),
+    }));
+    try {
+      await setTaskDueDate(taskId, dueDate);
     } catch (e) {
       setSyncError(String((e as Error).message ?? e));
     }
@@ -396,6 +420,31 @@ export default function Home() {
     }
   }
 
+  async function handleUpdateContractor(
+    id: string,
+    input: {
+      name: string;
+      role: string;
+      startDate: string;
+      endDate: string;
+      fullTime: boolean;
+    }
+  ) {
+    const patch = {
+      name: input.name,
+      role: input.role || null,
+      start_date: input.startDate || null,
+      end_date: input.fullTime ? null : input.endDate || null,
+      full_time: input.fullTime,
+    };
+    setContractors((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+    try {
+      await updateContractor(id, patch);
+    } catch (e) {
+      setSyncError(String((e as Error).message ?? e));
+    }
+  }
+
   async function handleDeleteContractor(id: string) {
     setContractors((prev) => prev.filter((c) => c.id !== id));
     try {
@@ -405,9 +454,11 @@ export default function Home() {
     }
   }
 
-  function selectProject(section: string, projectId: string) {
-    setView({ type: "section", section });
-    setFocusedId(projectId);
+  // Clicking a client anywhere (sidebar, calendar) opens its own page.
+  function selectProject(_section: string, projectId: string) {
+    setView({ type: "client", projectId });
+    setFocusedId(null);
+    window.scrollTo({ top: 0 });
   }
 
   const stats = useMemo(() => {
@@ -437,6 +488,7 @@ export default function Home() {
     onDeleteTask: handleDeleteTask,
     onAddTask: handleAddTask,
     onEditTask: handleEditTask,
+    onChangeTaskDue: handleChangeTaskDue,
     onMoveTaskWeek: handleMoveTaskWeek,
     onBlockerTextChange: handleBlockerTextChange,
     onResolveBlocker: handleResolveBlocker,
@@ -513,6 +565,7 @@ export default function Home() {
           <ContractorsView
             contractors={contractors}
             onAdd={handleAddContractor}
+            onUpdate={handleUpdateContractor}
             onDelete={handleDeleteContractor}
           />
         ) : view.type === "calendar" ? (
@@ -524,6 +577,18 @@ export default function Home() {
             onSelectProject={selectProject}
             calendarConnected={calendarConnected}
           />
+        ) : view.type === "client" ? (
+          (() => {
+            const project = projects.find((p) => p.id === view.projectId);
+            if (!project) return <div className="empty-state">That client was removed.</div>;
+            return (
+              <ClientPage
+                key={project.id}
+                project={project}
+                cardListProps={cardListProps}
+              />
+            );
+          })()
         ) : view.type === "overview" ? (
           <>
             <div className="page-header">

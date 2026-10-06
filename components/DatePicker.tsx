@@ -28,11 +28,15 @@ export default function DatePicker({
   onChange,
   placeholder = "Pick a date",
   className = "",
+  format = formatDisplay,
+  onClear,
 }: {
   value: string;
   onChange: (iso: string) => void;
   placeholder?: string;
   className?: string;
+  format?: (iso: string) => string;
+  onClear?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
@@ -70,9 +74,12 @@ export default function DatePicker({
         type="button"
         ref={triggerRef}
         className="date-picker-trigger"
-        onClick={openPicker}
+        onClick={(e) => {
+          e.stopPropagation();
+          openPicker();
+        }}
       >
-        {value ? formatDisplay(value) : placeholder}
+        {value ? format(value) : placeholder}
       </button>
       {open &&
         typeof document !== "undefined" &&
@@ -81,6 +88,7 @@ export default function DatePicker({
             className="date-picker-popover"
             ref={popoverRef}
             style={{ position: "fixed", top: coords.top, left: coords.left }}
+            onClick={(e) => e.stopPropagation()}
           >
             <DayPicker
               mode="single"
@@ -92,6 +100,18 @@ export default function DatePicker({
                 }
               }}
             />
+            {onClear && value && (
+              <button
+                type="button"
+                className="date-picker-clear"
+                onClick={() => {
+                  onClear();
+                  setOpen(false);
+                }}
+              >
+                Remove date
+              </button>
+            )}
           </div>,
           document.body
         )}

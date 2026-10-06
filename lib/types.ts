@@ -20,6 +20,7 @@ export interface Task {
   project_id: string;
   title: string;
   week: Week;
+  due_date: string | null;
   done: boolean;
   manually_edited: boolean;
   created_at: string;
@@ -55,6 +56,7 @@ export interface Project {
   pipeline_stage: PipelineStage | null;
   project_phase: ProjectPhase | null;
   workspace_url: string | null;
+  granola_synced_at: string | null;
   created_at: string;
   tasks: Task[];
   blockers: Blocker[];
@@ -92,4 +94,39 @@ export interface KeyIntelItem {
   text: string;
   sort_order: number;
   created_at: string;
+}
+
+export interface ClientLink {
+  id: string;
+  project_id: string;
+  label: string;
+  url: string;
+  created_at: string;
+}
+
+export interface ClientMeeting {
+  id: string;
+  project_id: string;
+  granola_id: string;
+  title: string;
+  met_at: string;
+  points: string[];
+  next_steps: string[];
+  url: string | null;
+}
+
+export type InsightKind = "insight" | "risk" | "opportunity";
+
+export interface ClientInsight {
+  id: string;
+  project_id: string;
+  kind: InsightKind;
+  text: string;
+  sort_order: number;
+}
+
+export interface ClientDetail {
+  links: ClientLink[];
+  meetings: ClientMeeting[];
+  insights: ClientInsight[];
 }

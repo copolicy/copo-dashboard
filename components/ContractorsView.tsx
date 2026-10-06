@@ -33,9 +33,122 @@ function dateRangeLabel(c: Contractor) {
   return "";
 }
 
+type ContractorInput = {
+  name: string;
+  role: string;
+  startDate: string;
+  endDate: string;
+  fullTime: boolean;
+};
+
+function EditContractorModal({
+  contractor,
+  onClose,
+  onSave,
+  onDelete,
+}: {
+  contractor: Contractor;
+  onClose: () => void;
+  onSave: (input: ContractorInput) => void;
+  onDelete: () => void;
+}) {
+  const [name, setName] = useState(contractor.name);
+  const [role, setRole] = useState(contractor.role ?? "");
+  const [startDate, setStartDate] = useState(contractor.start_date ?? "");
+  const [endDate, setEndDate] = useState(contractor.end_date ?? "");
+  const [fullTime, setFullTime] = useState(contractor.full_time);
+  const [error, setError] = useState<string | null>(null);
+
+  function save() {
+    if (!name.trim()) return setError("Add a name.");
+    if (!fullTime && !endDate) return setError("Add an end date, or tick Full-time.");
+    onSave({ name: name.trim(), role: role.trim(), startDate, endDate, fullTime });
+  }
+
+  return (
+    <div
+      className="modal-overlay open"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="modal contractor-modal">
+        <div className="modal-title">Edit contractor</div>
+        <div className="modal-field">
+          <div className="modal-label">Name</div>
+          <input
+            className="modal-input"
+            value={name}
+            autoFocus
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && save()}
+          />
+        </div>
+        <div className="modal-field">
+          <div className="modal-label">Role</div>
+          <input
+            className="modal-input"
+            value={role}
+            placeholder="Optional"
+            onChange={(e) => setRole(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && save()}
+          />
+        </div>
+        <div className="modal-field">
+          <label className="contractor-fulltime-label">
+            <input
+              type="checkbox"
+              checked={fullTime}
+              onChange={(e) => setFullTime(e.target.checked)}
+            />
+            Full-time (no end date)
+          </label>
+        </div>
+        <div className="contractor-modal-dates">
+          <div className="modal-field">
+            <div className="modal-label">Start date</div>
+            <DatePicker
+              value={startDate}
+              onChange={setStartDate}
+              onClear={() => setStartDate("")}
+              placeholder="Optional"
+            />
+          </div>
+          {!fullTime && (
+            <div className="modal-field">
+              <div className="modal-label">End date</div>
+              <DatePicker value={endDate} onChange={setEndDate} placeholder="Date" />
+            </div>
+          )}
+        </div>
+        {error && <div className="intake-error">{error}</div>}
+        <div className="modal-actions contractor-modal-actions">
+          <button
+            className="btn btn-danger-quiet"
+            onClick={() => {
+              if (window.confirm(`Remove ${contractor.name}?`)) onDelete();
+            }}
+          >
+            Remove
+          </button>
+          <span style={{ flex: 1 }} />
+          <button className="btn" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn btn-primary" onClick={save}>
+            Save
+          </button>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
 export default function ContractorsView({
   contractors,
   onAdd,
+  onUpdate,
   onDelete,
 }: {
   contractors: Contractor[];
@@ -46,8 +159,11 @@ export default function ContractorsView({
     endDate: string;
     fullTime: boolean;
   }) => void;
+  onUpdate: (id: string, input: ContractorInput) => void;
   onDelete: (id: string) => void;
 }) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editing = contractors.find((c) => c.id === editingId) ?? null;
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -80,7 +196,12 @@ export default function ContractorsView({
           <div className="empty-state">No contractors tracked yet.</div>
         )}
         {contractors.map((c) => (
-          <div className="contractor-row" key={c.id}>
+          <div
+            className="contractor-row contractor-row-clickable"
+            key={c.id}
+            onClick={() => setEditingId(c.id)}
+            title="Click to edit"
+          >
             <div className="contractor-info">
               <div className="contractor-name">{c.name}</div>
               {c.role && <div className="contractor-role">{c.role}</div>}
@@ -89,9 +210,7 @@ export default function ContractorsView({
             {isEndingSoon(c) && (
               <span className="milestone-flag">⚠ Contract ends within 2 weeks</span>
             )}
-            <button className="task-delete" onClick={() => onDelete(c.id)}>
-              ×
-            </button>
+            <span className="contractor-edit-hint">Edit</span>
           </div>
         ))}
 
@@ -143,6 +262,22 @@ export default function ContractorsView({
           </div>
         </div>
       </div>
+
+      {editing && (
+        <EditContractorModal
+          key={editing.id}
+          contractor={editing}
+          onClose={() => setEditingId(null)}
+          onSave={(input) => {
+            onUpdate(editing.id, input);
+            setEditingId(null);
+          }}
+          onDelete={() => {
+            onDelete(editing.id);
+            setEditingId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
