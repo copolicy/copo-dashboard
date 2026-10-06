@@ -21,6 +21,7 @@ export interface Task {
   title: string;
   week: Week;
   due_date: string | null;
+  carried_over: boolean;
   done: boolean;
   manually_edited: boolean;
   created_at: string;

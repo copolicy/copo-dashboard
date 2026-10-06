@@ -205,6 +205,11 @@ function TaskRow({
           onDoubleClick={() => setEditing(true)}
           title="Double-click to edit"
         >
+          {task.carried_over && !task.done && (
+            <span className="carried-tag" title="Not finished last week">
+              Carried over
+            </span>
+          )}
           <LinkedText text={task.title} />
         </div>
       )}

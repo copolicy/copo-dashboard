@@ -134,3 +134,16 @@ create table client_insights (
 alter table client_insights disable row level security;
 
 alter table projects add column granola_synced_at timestamptz;
+
+-- Monday rollover (pg_cron): undated unfinished Next week tasks move to
+-- This week; unfinished This week tasks are flagged carried_over.
+alter table tasks add column carried_over boolean not null default false;
+create or replace function copo_weekly_rollover() returns void
+language sql as $$
+  update tasks set carried_over = true
+   where week = 'this' and done = false and due_date is null;
+  update tasks set week = 'this', carried_over = false
+   where week = 'next' and done = false and due_date is null;
+$$;
+create extension if not exists pg_cron;
+select cron.schedule('copo-weekly-rollover', '0 8 * * 1', $$select copo_weekly_rollover()$$);
