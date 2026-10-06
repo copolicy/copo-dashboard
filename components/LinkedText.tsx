@@ -79,3 +79,11 @@ export default function LinkedText({ text }: { text: string }) {
     </>
   );
 }
+
+// Text with link syntax removed, for places that can't show links
+// (calendar chips, tooltips). "[the two selects](https://...)" -> "the two selects".
+export function plainText(text: string) {
+  return text
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1")
+    .replace(/https?:\/\/[^\s)]+/g, (url) => shortLinkLabel(url));
+}

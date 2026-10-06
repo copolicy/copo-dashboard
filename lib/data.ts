@@ -78,6 +78,15 @@ export async function setProjectPhase(
   if (error) throw error;
 }
 
+export async function setWorkspaceUrl(projectId: string, url: string | null) {
+  const { error } = await supabase
+    .from("projects")
+    .update({ workspace_url: url })
+    .eq("id", projectId);
+
+  if (error) throw error;
+}
+
 export async function addTask(projectId: string, title: string, week: Week) {
   const { data, error } = await supabase
     .from("tasks")
@@ -225,6 +234,7 @@ export async function createProjectFromIntake(
       status: draft.status,
       team: draft.team,
       project_phase: draft.project_phase,
+      workspace_url: draft.workspace_url || null,
     })
     .select()
     .single();

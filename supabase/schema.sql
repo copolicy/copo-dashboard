@@ -92,3 +92,6 @@ create table key_intel (
   created_at timestamptz default now()
 );
 alter table key_intel disable row level security;
+
+-- Per-client workspace link (Figma, Drive, Notion...).
+alter table projects add column workspace_url text;

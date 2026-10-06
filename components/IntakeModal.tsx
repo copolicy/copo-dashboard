@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { normalizeUrl } from "@/components/WorkspaceLink";
 import type {
   IntakeDraft,
   MilestoneKind,
@@ -18,6 +19,7 @@ function emptyDraft(): IntakeDraft {
     status: "active",
     project_phase: null,
     team: [],
+    workspace_url: "",
     milestones: [],
     tasks: [],
     blockers: [],
@@ -40,6 +42,7 @@ function normalize(raw: any): IntakeDraft {
     status: raw?.status === "retainer" ? "retainer" : "active",
     project_phase: PHASES.includes(raw?.project_phase) ? raw.project_phase : null,
     team: arr(raw?.team).map(str).filter(Boolean),
+    workspace_url: "",
     milestones: arr(raw?.milestones)
       .map((m) => ({
         title: str(m?.title),
@@ -129,6 +132,7 @@ export default function IntakeModal({
     const cleaned: IntakeDraft = {
       ...draft,
       name: draft.name.trim(),
+      workspace_url: normalizeUrl(draft.workspace_url),
       team: teamText.split(",").map((t) => t.trim()).filter(Boolean),
       milestones: draft.milestones
         .map((m) => ({ ...m, title: m.title.trim() }))
@@ -287,6 +291,15 @@ export default function IntakeModal({
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="modal-field intake-span">
+                <div className="modal-label">Workspace link (optional)</div>
+                <input
+                  className="modal-input"
+                  value={draft.workspace_url}
+                  placeholder="Figma, Drive folder, Notion page…"
+                  onChange={(e) => update("workspace_url", e.target.value)}
+                />
               </div>
               <div className="modal-field intake-span">
                 <div className="modal-label">Team (comma separated)</div>

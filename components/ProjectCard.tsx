@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import LinkedText, { isUrl, withLink } from "@/components/LinkedText";
+import WorkspaceLink from "@/components/WorkspaceLink";
 import type {
   Milestone,
   MilestoneKind,
@@ -369,6 +370,7 @@ export default function ProjectCard({
   onChangeStage,
   onMoveToActive,
   onChangePhase,
+  onChangeWorkspace,
   onAddMilestone,
   onToggleMilestoneCompleted,
   onDeleteMilestone,
@@ -386,6 +388,7 @@ export default function ProjectCard({
   onChangeStage: (stage: PipelineStage) => void;
   onMoveToActive: () => void;
   onChangePhase: (phase: ProjectPhase | null) => void;
+  onChangeWorkspace: (url: string | null) => void;
   onAddMilestone: (title: string, date: string, kind: MilestoneKind) => void;
   onToggleMilestoneCompleted: (id: string, completed: boolean) => void;
   onDeleteMilestone: (id: string) => void;
@@ -470,6 +473,7 @@ export default function ProjectCard({
                 ))}
               </select>
             )}
+            <WorkspaceLink url={project.workspace_url} onChange={onChangeWorkspace} />
             {activeBlockers.map((blocker) => (
               <span
                 key={blocker.id}

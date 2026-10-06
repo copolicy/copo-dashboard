@@ -54,6 +54,7 @@ export interface Project {
   section: string;
   pipeline_stage: PipelineStage | null;
   project_phase: ProjectPhase | null;
+  workspace_url: string | null;
   created_at: string;
   tasks: Task[];
   blockers: Blocker[];
@@ -76,6 +77,7 @@ export interface IntakeDraft {
   status: Status;
   project_phase: ProjectPhase | null;
   team: string[];
+  workspace_url: string;
   milestones: { title: string; date: string; kind: MilestoneKind }[];
   tasks: { title: string; week: Week }[];
   blockers: string[];

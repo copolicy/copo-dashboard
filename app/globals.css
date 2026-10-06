@@ -1211,3 +1211,115 @@ select {
 .add-link-row {
   margin-top: 4px;
 }
+.calendar-chip.chip-contract {
+  background: var(--blue-light);
+  color: var(--blue-text);
+}
+.calendar-chip.chip-contract:hover {
+  background: color-mix(in srgb, var(--blue-light) 70%, var(--blue) 30%);
+}
+
+/* client workspace link (project card header) */
+.ws-link-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.ws-link {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--blue-light);
+  color: var(--blue-text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ws-link:hover {
+  background: color-mix(in srgb, var(--blue-light) 70%, var(--blue) 30%);
+}
+.ws-edit-btn {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: var(--ink3);
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.pc-header:hover .ws-edit-btn,
+.ws-edit-btn:focus-visible {
+  opacity: 1;
+}
+.ws-edit-btn:hover {
+  color: var(--ink);
+}
+.ws-add {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px dashed var(--border2);
+  background: transparent;
+  color: var(--ink3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ws-add:hover {
+  color: var(--ink2);
+  background: var(--card);
+}
+.ws-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.ws-input {
+  font-size: 11px;
+  padding: 3px 7px;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  width: min(280px, 60vw);
+  outline: none;
+  background: var(--card);
+}
+.ws-input:focus {
+  border-color: var(--ink);
+}
+.ws-btn {
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: var(--card);
+  color: var(--ink2);
+  cursor: pointer;
+}
+.ws-btn:hover {
+  background: var(--active-bg);
+}
+.ws-save {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.ws-save:hover {
+  background: #333;
+}
+
+/* calendar: keep columns even when chips are long */
+.calendar-grid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.calendar-cell {
+  min-width: 0;
+}
+.calendar-chip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}

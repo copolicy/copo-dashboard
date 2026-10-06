@@ -25,6 +25,7 @@ export default function ProjectCardList({
   onChangeStage,
   onMoveToActive,
   onChangePhase,
+  onChangeWorkspace,
   onAddMilestone,
   onToggleMilestoneCompleted,
   onDeleteMilestone,
@@ -48,6 +49,7 @@ export default function ProjectCardList({
   onChangeStage: (projectId: string, stage: PipelineStage) => void;
   onMoveToActive: (projectId: string) => void;
   onChangePhase: (projectId: string, phase: ProjectPhase | null) => void;
+  onChangeWorkspace: (projectId: string, url: string | null) => void;
   onAddMilestone: (
     projectId: string,
     title: string,
@@ -95,6 +97,7 @@ export default function ProjectCardList({
           onChangeStage={(stage) => onChangeStage(project.id, stage)}
           onMoveToActive={() => onMoveToActive(project.id)}
           onChangePhase={(phase) => onChangePhase(project.id, phase)}
+          onChangeWorkspace={(url) => onChangeWorkspace(project.id, url)}
           onAddMilestone={(title, date, kind) =>
             onAddMilestone(project.id, title, date, kind)
           }

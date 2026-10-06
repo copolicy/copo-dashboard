@@ -12,6 +12,7 @@ import ContractorsView from "@/components/ContractorsView";
 import CalendarView from "@/components/CalendarView";
 import AddClientModal from "@/components/AddClientModal";
 import IntakeModal from "@/components/IntakeModal";
+import { plainText } from "@/components/LinkedText";
 import {
   addContractor,
   addMilestone,
@@ -30,6 +31,7 @@ import {
   setProjectPhase,
   setTaskDone,
   setTaskWeek,
+  setWorkspaceUrl,
   updateBlockerText,
   updateTaskTitle,
 } from "@/lib/data";
@@ -252,6 +254,15 @@ export default function Home() {
     }
   }
 
+  async function handleChangeWorkspace(projectId: string, url: string | null) {
+    updateProject(projectId, (p) => ({ ...p, workspace_url: url }));
+    try {
+      await setWorkspaceUrl(projectId, url);
+    } catch (e) {
+      setSyncError(String((e as Error).message ?? e));
+    }
+  }
+
   async function handleAddMilestone(
     projectId: string,
     title: string,
@@ -282,7 +293,7 @@ export default function Home() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         milestoneId: milestone.id,
-        title: milestone.title,
+        title: plainText(milestone.title),
         date: milestone.date,
         projectName,
       }),
@@ -432,6 +443,7 @@ export default function Home() {
     onChangeStage: handleChangeStage,
     onMoveToActive: handleMoveToActive,
     onChangePhase: handleChangePhase,
+    onChangeWorkspace: handleChangeWorkspace,
     onAddMilestone: handleAddMilestone,
     onToggleMilestoneCompleted: handleToggleMilestoneCompleted,
     onDeleteMilestone: handleDeleteMilestone,
@@ -506,6 +518,8 @@ export default function Home() {
         ) : view.type === "calendar" ? (
           <CalendarView
             projects={projects.filter((p) => p.section !== ARCHIVED_SECTION)}
+            contractors={contractors}
+            onSelectContractors={() => setView({ type: "contractors" })}
             onAddMilestone={handleAddMilestone}
             onSelectProject={selectProject}
             calendarConnected={calendarConnected}

@@ -13,7 +13,8 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import type { MilestoneKind, Project } from "@/lib/types";
+import { plainText } from "@/components/LinkedText";
+import type { Contractor, MilestoneKind, Project } from "@/lib/types";
 
 interface CalendarItem {
   project: Project;
@@ -31,11 +32,15 @@ const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function CalendarView({
   projects,
+  contractors,
   onAddMilestone,
   onSelectProject,
+  onSelectContractors,
   calendarConnected,
 }: {
   projects: Project[];
+  contractors: Contractor[];
+  onSelectContractors: () => void;
   onAddMilestone: (
     projectId: string,
     title: string,
@@ -68,6 +73,17 @@ export default function CalendarView({
     }
     return map;
   }, [projects]);
+
+  const contractorEndsByDate = useMemo(() => {
+    const map = new Map<string, Contractor[]>();
+    for (const c of contractors) {
+      if (c.full_time || !c.end_date) continue;
+      const list = map.get(c.end_date) ?? [];
+      list.push(c);
+      map.set(c.end_date, list);
+    }
+    return map;
+  }, [contractors]);
 
   const days = eachDayOfInterval({
     start: startOfWeek(startOfMonth(monthAnchor)),
@@ -126,6 +142,7 @@ export default function CalendarView({
         {days.map((day) => {
           const iso = toIso(day);
           const items = itemsByDate.get(iso) ?? [];
+          const contractEnds = contractorEndsByDate.get(iso) ?? [];
           const inMonth = isSameMonth(day, monthAnchor);
           return (
             <div
@@ -152,10 +169,20 @@ export default function CalendarView({
                       item.kind === "invoice" ? "chip-invoice" : ""
                     } ${item.completed ? "chip-completed" : ""}`}
                     onClick={() => onSelectProject(item.project.section, item.project.id)}
-                    title={`${item.project.name}: ${item.title}`}
+                    title={`${item.project.name}: ${plainText(item.title)}`}
                   >
                     {item.kind === "invoice" ? "💰 " : ""}
-                    {item.project.name}: {item.title}
+                    {item.project.name}: {plainText(item.title)}
+                  </button>
+                ))}
+                {contractEnds.map((c) => (
+                  <button
+                    key={c.id}
+                    className="calendar-chip chip-contract"
+                    onClick={onSelectContractors}
+                    title={`${c.name}${c.role ? ` (${c.role})` : ""}: contract ends`}
+                  >
+                    {c.name}: contract ends
                   </button>
                 ))}
               </div>
