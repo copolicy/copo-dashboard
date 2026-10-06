@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import LinkedText, { isUrl, withLink } from "@/components/LinkedText";
 import type {
   Milestone,
   MilestoneKind,
@@ -62,6 +63,21 @@ function isFlagged(dateIso: string, windowDays = 7) {
   return daysOut >= 0 && daysOut <= windowDays;
 }
 
+// Pasting a link over selected words turns those words into the link.
+function pasteLinkOverSelection(
+  e: React.ClipboardEvent<HTMLInputElement>,
+  setValue: (v: string) => void
+) {
+  const pasted = e.clipboardData.getData("text");
+  const input = e.currentTarget;
+  const start = input.selectionStart ?? 0;
+  const end = input.selectionEnd ?? 0;
+  if (!isUrl(pasted) || start === end) return;
+  e.preventDefault();
+  const v = input.value;
+  setValue(v.slice(0, start) + withLink(v.slice(start, end), pasted) + v.slice(end));
+}
+
 function TaskRow({
   task,
   onToggle,
@@ -100,6 +116,7 @@ function TaskRow({
           value={value}
           autoFocus
           onChange={(e) => setValue(e.target.value)}
+          onPaste={(e) => pasteLinkOverSelection(e, setValue)}
           onBlur={commit}
           onKeyDown={(e) => {
             if (e.key === "Enter") commit();
@@ -113,8 +130,9 @@ function TaskRow({
         <div
           className={`task-label ${task.done ? "checked" : ""}`}
           onDoubleClick={() => setEditing(true)}
+          title="Double-click to edit"
         >
-          {task.title}
+          <LinkedText text={task.title} />
         </div>
       )}
       <button
@@ -152,15 +170,19 @@ function TaskColumn({
   moveDirection: "next" | "prev";
 }) {
   const [value, setValue] = useState("");
+  const [link, setLink] = useState("");
+  const [linkOpen, setLinkOpen] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const activeTasks = tasks.filter((t) => !t.done);
   const completedTasks = tasks.filter((t) => t.done);
 
   function submit() {
-    const trimmed = value.trim();
-    if (!trimmed) return;
-    onAdd(trimmed);
+    const title = withLink(value, link);
+    if (!title) return;
+    onAdd(title);
     setValue("");
+    setLink("");
+    setLinkOpen(false);
   }
 
   return (
@@ -210,14 +232,44 @@ function TaskColumn({
           placeholder="Add task…"
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          onPaste={(e) => pasteLinkOverSelection(e, setValue)}
           onKeyDown={(e) => {
             if (e.key === "Enter") submit();
           }}
         />
+        <button
+          className={`add-task-btn add-link-btn ${linkOpen || link ? "on" : ""}`}
+          onClick={() => setLinkOpen((o) => !o)}
+          title="Add a link"
+          aria-label="Add a link"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5" />
+            <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5" />
+          </svg>
+        </button>
         <button className="add-task-btn" onClick={submit}>
           +
         </button>
       </div>
+      {linkOpen && (
+        <div className="add-task-row add-link-row">
+          <input
+            className="add-task-input"
+            placeholder="Paste link (Figma, Drive, anything)"
+            value={link}
+            autoFocus
+            onChange={(e) => setLink(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submit();
+              if (e.key === "Escape") {
+                setLink("");
+                setLinkOpen(false);
+              }
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -264,7 +316,7 @@ function TimelineSection({
             {m.kind === "invoice" && (
               <span className="milestone-kind">💰 Invoice — </span>
             )}
-            {m.title}
+            <LinkedText text={m.title} />
           </div>
           {!m.completed && isFlagged(m.date) && (
             <span className="milestone-flag">
@@ -427,7 +479,7 @@ export default function ProjectCard({
                   if (!expanded) onToggleExpand();
                 }}
               >
-                ⚠ {blocker.text}
+                ⚠ <LinkedText text={blocker.text} />
               </span>
             ))}
           </div>

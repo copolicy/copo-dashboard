@@ -1183,3 +1183,31 @@ select {
     order: -1;
   }
 }
+
+/* links inside task, milestone and blocker text */
+.text-link {
+  color: var(--blue);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--blue) 35%, transparent);
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+.text-link:hover {
+  text-decoration-color: var(--blue);
+}
+.task-label.checked .text-link {
+  color: inherit;
+}
+.add-link-btn {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink3);
+}
+.add-link-btn.on {
+  color: var(--blue);
+  border-color: var(--blue);
+  background: var(--blue-light);
+}
+.add-link-row {
+  margin-top: 4px;
+}
