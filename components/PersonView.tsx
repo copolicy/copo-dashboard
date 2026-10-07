@@ -6,9 +6,13 @@ import { fetchRecentMeetings } from "@/lib/data";
 import type { ClientMeeting, Project, Task } from "@/lib/types";
 
 // Team members who get their own to-do page in the sidebar.
-export const PEOPLE = ["Adam"];
+export const PEOPLE = ["Nicole", "Adam"];
+
+// Tasks with no named owner belong to the dashboard's owner.
+export const DEFAULT_OWNER = "Nicole";
 
 const MEETING_LOOKBACK_DAYS = 21;
+const MENTIONS_SHOWN = 8;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Who a task belongs to, from how it's written: "Adam: send deck" or
@@ -16,6 +20,11 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export function taskOwner(title: string): string | null {
   const m = title.trim().match(/^([A-Z][a-z]+)(?::|\s+to\s)/);
   return m ? m[1] : null;
+}
+
+// Who a task is for, counting unowned tasks as the default owner's.
+export function ownerOf(title: string): string {
+  return taskOwner(title) ?? DEFAULT_OWNER;
 }
 
 // Drops the "Adam: " prefix when showing a task on Adam's own page.
@@ -86,6 +95,7 @@ export default function PersonView({
 }) {
   const [meetings, setMeetings] = useState<ClientMeeting[] | null>(null);
   const [showDone, setShowDone] = useState(false);
+  const [showAllMentions, setShowAllMentions] = useState(false);
 
   useEffect(() => {
     fetchRecentMeetings(MEETING_LOOKBACK_DAYS)
@@ -99,7 +109,7 @@ export default function PersonView({
         .filter((p) => p.section !== "Archived")
         .flatMap((project) =>
           project.tasks
-            .filter((t) => !t.hidden && taskOwner(t.title) === person)
+            .filter((t) => !t.hidden && ownerOf(t.title) === person)
             .map((task) => ({ task, project }))
         ),
     [projects, person]
@@ -175,6 +185,11 @@ export default function PersonView({
         <div className="header-left">
           <div className="week-label">Team</div>
           <div className="week-title">{person}&apos;s to-dos</div>
+          {person === DEFAULT_OWNER && (
+            <div className="client-team">
+              Includes every task without someone else&apos;s name in front.
+            </div>
+          )}
         </div>
       </div>
 
@@ -245,7 +260,7 @@ export default function PersonView({
             ) : mentions.length === 0 ? (
               <div className="empty-state">None recently.</div>
             ) : (
-              mentions.map(({ meeting, step, project }, i) => (
+              (showAllMentions ? mentions : mentions.slice(0, MENTIONS_SHOWN)).map(({ meeting, step, project }, i) => (
                 <div className="person-mention" key={`${meeting.id}-${i}`}>
                   <div className="person-mention-text">
                     <LinkedText text={withoutOwner(step, person)} />
@@ -277,6 +292,14 @@ export default function PersonView({
                   </div>
                 </div>
               ))
+            )}
+            {mentions.length > MENTIONS_SHOWN && (
+              <button
+                className="completed-toggle"
+                onClick={() => setShowAllMentions((v) => !v)}
+              >
+                {showAllMentions ? "Show fewer" : `Show ${mentions.length - MENTIONS_SHOWN} more`}
+              </button>
             )}
           </section>
         </aside>

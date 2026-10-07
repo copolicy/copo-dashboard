@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Contractor, Project, Status } from "@/lib/types";
-import { PEOPLE, taskOwner } from "@/components/PersonView";
+import { PEOPLE, ownerOf } from "@/components/PersonView";
 
 export type View =
   | { type: "overview" }
@@ -109,7 +109,7 @@ export default function Sidebar({
               (n, p) =>
                 n +
                 p.tasks.filter(
-                  (t) => !t.done && !t.hidden && taskOwner(t.title) === person
+                  (t) => !t.done && !t.hidden && ownerOf(t.title) === person
                 ).length,
               0
             );
