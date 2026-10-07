@@ -1755,3 +1755,109 @@ select {
 .add-task-row .add-task-input {
   flex: 1 1 120px;
 }
+
+/* person to-do page */
+.nav-count-quiet {
+  background: var(--active-bg);
+  color: var(--ink2);
+}
+.person-stats {
+  margin-bottom: 20px;
+}
+.stat-alert {
+  border-color: #f5c6c3;
+  background: var(--danger-light);
+}
+.stat-alert .stat-n {
+  color: var(--danger-text);
+}
+.person-group + .person-group {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.person-group .intel-title {
+  margin-bottom: 6px;
+}
+.person-group-overdue .intel-title {
+  color: var(--danger);
+}
+.person-count {
+  font-weight: 600;
+  color: var(--ink3);
+  margin-left: 4px;
+}
+.person-task {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 0;
+}
+.person-task .task-check {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.person-task-body {
+  min-width: 0;
+  flex: 1;
+}
+.person-task-title {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.person-task-body.checked .person-task-title {
+  color: var(--ink3);
+  text-decoration: line-through;
+}
+.person-task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+.person-client {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: none;
+  background: var(--active-bg);
+  color: var(--ink2);
+  cursor: pointer;
+}
+.person-client:hover {
+  background: var(--border2);
+  color: var(--ink);
+}
+.person-due {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink3);
+}
+.person-due.overdue {
+  color: var(--danger);
+}
+.person-hint {
+  font-size: 11px;
+  color: var(--ink3);
+  margin: -4px 0 10px;
+}
+.person-mention {
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+.person-mention:first-of-type {
+  border-top: none;
+}
+.person-mention-text {
+  font-size: 13px;
+  color: var(--ink2);
+  line-height: 1.45;
+}
+.person-mention-src {
+  font-size: 10px;
+  color: var(--ink3);
+}

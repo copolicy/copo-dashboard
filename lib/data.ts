@@ -3,6 +3,7 @@ import type {
   Blocker,
   ClientDetail,
   ClientLink,
+  ClientMeeting,
   Contractor,
   IntakeDraft,
   KeyIntelItem,
@@ -412,4 +413,15 @@ export async function setProjectNotes(projectId: string, notes: string) {
     .eq("id", projectId);
   if (error) throw error;
   return notes_updated_at;
+}
+
+export async function fetchRecentMeetings(days: number): Promise<ClientMeeting[]> {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from("client_meetings")
+    .select("*")
+    .gte("met_at", since)
+    .order("met_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as ClientMeeting[];
 }

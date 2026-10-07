@@ -13,6 +13,7 @@ import CalendarView from "@/components/CalendarView";
 import AddClientModal from "@/components/AddClientModal";
 import IntakeModal from "@/components/IntakeModal";
 import ClientPage from "@/components/ClientPage";
+import PersonView from "@/components/PersonView";
 import { plainText } from "@/components/LinkedText";
 import {
   addContractor,
@@ -591,6 +592,14 @@ export default function Home() {
             onAdd={handleAddContractor}
             onUpdate={handleUpdateContractor}
             onDelete={handleDeleteContractor}
+          />
+        ) : view.type === "person" ? (
+          <PersonView
+            key={view.person}
+            person={view.person}
+            projects={projects}
+            onToggleTask={handleToggleTask}
+            onSelectProject={selectProject}
           />
         ) : view.type === "calendar" ? (
           <CalendarView

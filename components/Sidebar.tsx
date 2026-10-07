@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Contractor, Project, Status } from "@/lib/types";
+import { PEOPLE, taskOwner } from "@/components/PersonView";
 
 export type View =
   | { type: "overview" }
@@ -9,7 +10,8 @@ export type View =
   | { type: "contractors" }
   | { type: "calendar" }
   | { type: "section"; section: string }
-  | { type: "client"; projectId: string };
+  | { type: "client"; projectId: string }
+  | { type: "person"; person: string };
 
 const CONTRACT_FLAG_DAYS = 14;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -100,6 +102,30 @@ export default function Sidebar({
         >
           <div className="nav-item-left">Calendar</div>
         </div>
+        {PEOPLE.map((person) => {
+          const openCount = projects
+            .filter((p) => p.section !== ARCHIVED_SECTION)
+            .reduce(
+              (n, p) =>
+                n +
+                p.tasks.filter(
+                  (t) => !t.done && !t.hidden && taskOwner(t.title) === person
+                ).length,
+              0
+            );
+          return (
+            <div
+              key={person}
+              className={`nav-item ${
+                view.type === "person" && view.person === person ? "active" : ""
+              }`}
+              onClick={() => onSelectView({ type: "person", person })}
+            >
+              <div className="nav-item-left">{person}</div>
+              {openCount > 0 && <span className="nav-count nav-count-quiet">{openCount}</span>}
+            </div>
+          );
+        })}
       </div>
 
       {sections.map((section) => {
