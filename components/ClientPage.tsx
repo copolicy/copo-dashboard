@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState, type ComponentProps } from "react";
+import { useEffect, useRef, useState, type ComponentProps } from "react";
 import ProjectCardList from "@/components/ProjectCardList";
 import LinkedText, { shortLinkLabel } from "@/components/LinkedText";
 import { normalizeUrl } from "@/components/WorkspaceLink";
-import { addClientLink, deleteClientLink, fetchClientDetail } from "@/lib/data";
+import {
+  addClientLink,
+  deleteClientLink,
+  fetchClientDetail,
+  setProjectNotes,
+} from "@/lib/data";
 import type { ClientDetail, ClientMeeting, InsightKind, Project } from "@/lib/types";
 
 type CardListProps = Omit<
@@ -40,9 +45,11 @@ function formatSynced(iso: string) {
 export default function ClientPage({
   project,
   cardListProps,
+  onNotesSaved,
 }: {
   project: Project;
   cardListProps: CardListProps;
+  onNotesSaved: (notes: string, savedAt: string) => void;
 }) {
   const [detail, setDetail] = useState<ClientDetail | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -80,6 +87,8 @@ export default function ClientPage({
             focusedId={null}
             onToggleExpand={() => {}}
           />
+
+          <NotesPanel project={project} onSaved={onNotesSaved} />
 
           <section className="client-panel">
             <div className="client-panel-head">
@@ -276,6 +285,101 @@ function LinksPanel({
         </div>
       </div>
       {error && <div className="intake-error">{error}</div>}
+    </section>
+  );
+}
+
+function formatSaved(iso: string) {
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+// Free-form notes for the client. Saves automatically a moment after you
+// stop typing, and when you click away.
+function NotesPanel({
+  project,
+  onSaved,
+}: {
+  project: Project;
+  onSaved: (notes: string, savedAt: string) => void;
+}) {
+  const [text, setText] = useState(project.notes ?? "");
+  const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
+  const [savedAt, setSavedAt] = useState(project.notes_updated_at);
+  const lastSaved = useRef(project.notes ?? "");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
+  const latest = useRef(project.notes ?? "");
+
+  function grow() {
+    const el = box.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.max(140, el.scrollHeight + 2)}px`;
+  }
+
+  useEffect(grow, []);
+
+  async function save(value: string) {
+    if (timer.current) clearTimeout(timer.current);
+    if (value === lastSaved.current) return;
+    setStatus("saving");
+    try {
+      const at = await setProjectNotes(project.id, value);
+      lastSaved.current = value;
+      setSavedAt(at);
+      setStatus("idle");
+      onSaved(value, at);
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  // Save any pending edit when leaving the page (e.g. switching clients
+  // mid-sentence). Fire and forget; the component is going away.
+  useEffect(() => {
+    const projectId = project.id;
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+      if (latest.current !== lastSaved.current) {
+        setProjectNotes(projectId, latest.current).catch(() => {});
+      }
+    };
+  }, [project.id]);
+
+  return (
+    <section className="client-panel">
+      <div className="client-panel-head">
+        <div className="intel-title">Notes</div>
+        <div className="client-synced">
+          {status === "saving"
+            ? "Saving…"
+            : status === "error"
+              ? "Couldn't save. Click away to retry."
+              : savedAt
+                ? `Saved ${formatSaved(savedAt)}`
+                : ""}
+        </div>
+      </div>
+      <textarea
+        ref={box}
+        className="client-notes"
+        value={text}
+        placeholder="Anything worth remembering about this client: context, preferences, contacts, ideas…"
+        onChange={(e) => {
+          const v = e.target.value;
+          setText(v);
+          latest.current = v;
+          grow();
+          if (timer.current) clearTimeout(timer.current);
+          timer.current = setTimeout(() => save(v), 900);
+        }}
+        onBlur={() => save(text)}
+      />
     </section>
   );
 }

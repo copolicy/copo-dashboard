@@ -403,3 +403,13 @@ export async function deleteClientLink(linkId: string) {
   const { error } = await supabase.from("client_links").delete().eq("id", linkId);
   if (error) throw error;
 }
+
+export async function setProjectNotes(projectId: string, notes: string) {
+  const notes_updated_at = new Date().toISOString();
+  const { error } = await supabase
+    .from("projects")
+    .update({ notes, notes_updated_at })
+    .eq("id", projectId);
+  if (error) throw error;
+  return notes_updated_at;
+}

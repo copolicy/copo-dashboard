@@ -1712,3 +1712,46 @@ select {
     opacity: 0.6;
   }
 }
+
+/* client notes */
+.client-notes {
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--paper);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
+  resize: vertical;
+  outline: none;
+  overflow: hidden;
+}
+.client-notes:focus {
+  border-color: var(--ink3);
+  background: #fff;
+}
+.client-notes::placeholder {
+  color: var(--ink3);
+}
+
+/* week columns: never wider than their half, long text wraps */
+.two-col {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.two-col > * {
+  min-width: 0;
+}
+.task-row .task-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* add-task row wraps its buttons under the input when space is tight */
+.add-task-row {
+  flex-wrap: wrap;
+}
+.add-task-row .add-task-input {
+  flex: 1 1 120px;
+}

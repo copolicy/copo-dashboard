@@ -610,6 +610,13 @@ export default function Home() {
                 key={project.id}
                 project={project}
                 cardListProps={cardListProps}
+                onNotesSaved={(notes, savedAt) =>
+                  updateProject(project.id, (p) => ({
+                    ...p,
+                    notes,
+                    notes_updated_at: savedAt,
+                  }))
+                }
               />
             );
           })()

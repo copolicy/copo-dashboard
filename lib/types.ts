@@ -60,6 +60,8 @@ export interface Project {
   project_phase: ProjectPhase | null;
   workspace_url: string | null;
   granola_synced_at: string | null;
+  notes: string;
+  notes_updated_at: string | null;
   created_at: string;
   tasks: Task[];
   blockers: Blocker[];

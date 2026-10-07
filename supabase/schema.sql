@@ -153,3 +153,7 @@ select cron.schedule('copo-weekly-rollover', '0 8 * * 1', $$select copo_weekly_r
 alter table tasks add column asana_gid text;
 create unique index tasks_asana_gid_key on tasks (asana_gid) where asana_gid is not null;
 alter table tasks add column hidden boolean not null default false;
+
+-- Free-form notes per client (client page).
+alter table projects add column notes text not null default '';
+alter table projects add column notes_updated_at timestamptz;
