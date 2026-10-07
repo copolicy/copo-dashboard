@@ -68,6 +68,29 @@ export async function moveToActive(projectId: string) {
   if (error) throw error;
 }
 
+// Moves a project to another sidebar section, keeping its status in step:
+// Wrapping -> wrapping, Pipeline -> pipeline (starting at "talks"),
+// Active clients / Internal -> active (a retainer stays a retainer).
+// Archived keeps whatever status it had.
+export function statusForSection(
+  section: string,
+  current: Status
+): { status: Status; pipeline_stage: PipelineStage | null } {
+  if (section === "Wrapping") return { status: "wrapping", pipeline_stage: null };
+  if (section === "Pipeline") return { status: "pipeline", pipeline_stage: "talks" };
+  if (section === "Archived") return { status: current, pipeline_stage: null };
+  return { status: current === "retainer" ? "retainer" : "active", pipeline_stage: null };
+}
+
+export async function moveProject(projectId: string, section: string, current: Status) {
+  const { error } = await supabase
+    .from("projects")
+    .update({ section, ...statusForSection(section, current) })
+    .eq("id", projectId);
+
+  if (error) throw error;
+}
+
 export async function setProjectPhase(
   projectId: string,
   phase: ProjectPhase | null

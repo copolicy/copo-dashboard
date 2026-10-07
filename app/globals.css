@@ -1664,3 +1664,20 @@ select {
   white-space: nowrap;
   vertical-align: 1px;
 }
+
+/* "Move to…" section menu on project cards */
+.move-select {
+  font-size: 10px;
+  padding: 1px 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink3);
+  cursor: pointer;
+  max-width: 120px;
+}
+.move-select:hover,
+.move-select:focus {
+  color: var(--ink2);
+  border-color: var(--border2);
+}

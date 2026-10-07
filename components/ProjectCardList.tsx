@@ -25,6 +25,8 @@ export default function ProjectCardList({
   onResolveBlocker,
   onChangeStage,
   onMoveToActive,
+  onMoveSection,
+  sections,
   onChangePhase,
   onChangeWorkspace,
   onAddMilestone,
@@ -55,6 +57,8 @@ export default function ProjectCardList({
   onResolveBlocker: (projectId: string, blockerId: string) => void;
   onChangeStage: (projectId: string, stage: PipelineStage) => void;
   onMoveToActive: (projectId: string) => void;
+  onMoveSection: (projectId: string, section: string) => void;
+  sections: string[];
   onChangePhase: (projectId: string, phase: ProjectPhase | null) => void;
   onChangeWorkspace: (projectId: string, url: string | null) => void;
   onAddMilestone: (
@@ -104,6 +108,8 @@ export default function ProjectCardList({
           }
           onChangeStage={(stage) => onChangeStage(project.id, stage)}
           onMoveToActive={() => onMoveToActive(project.id)}
+          onMoveSection={(section) => onMoveSection(project.id, section)}
+          sections={sections}
           onChangePhase={(phase) => onChangePhase(project.id, phase)}
           onChangeWorkspace={(url) => onChangeWorkspace(project.id, url)}
           onAddMilestone={(title, date, kind) =>

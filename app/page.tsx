@@ -25,7 +25,9 @@ import {
   deleteTask,
   fetchContractors,
   fetchProjects,
+  moveProject,
   moveToActive,
+  statusForSection,
   resolveBlocker,
   setMilestoneCompleted,
   setPipelineStage,
@@ -269,6 +271,21 @@ export default function Home() {
     }
   }
 
+  async function handleMoveSection(projectId: string, section: string) {
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return;
+    updateProject(projectId, (p) => ({
+      ...p,
+      section,
+      ...statusForSection(section, p.status),
+    }));
+    try {
+      await moveProject(projectId, section, project.status);
+    } catch (e) {
+      setSyncError(String((e as Error).message ?? e));
+    }
+  }
+
   async function handleChangePhase(projectId: string, phase: ProjectPhase | null) {
     updateProject(projectId, (p) => ({ ...p, project_phase: phase }));
     try {
@@ -494,6 +511,10 @@ export default function Home() {
     onResolveBlocker: handleResolveBlocker,
     onChangeStage: handleChangeStage,
     onMoveToActive: handleMoveToActive,
+    onMoveSection: handleMoveSection,
+    sections: Array.from(
+      new Set([...sectionsInOrder(projects), ARCHIVED_SECTION])
+    ),
     onChangePhase: handleChangePhase,
     onChangeWorkspace: handleChangeWorkspace,
     onAddMilestone: handleAddMilestone,

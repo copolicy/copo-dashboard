@@ -484,6 +484,8 @@ export default function ProjectCard({
   onResolveBlocker,
   onChangeStage,
   onMoveToActive,
+  onMoveSection,
+  sections,
   onChangePhase,
   onChangeWorkspace,
   onAddMilestone,
@@ -503,6 +505,8 @@ export default function ProjectCard({
   onResolveBlocker: (blockerId: string) => void;
   onChangeStage: (stage: PipelineStage) => void;
   onMoveToActive: () => void;
+  onMoveSection: (section: string) => void;
+  sections: string[];
   onChangePhase: (phase: ProjectPhase | null) => void;
   onChangeWorkspace: (url: string | null) => void;
   onAddMilestone: (title: string, date: string, kind: MilestoneKind) => void;
@@ -592,6 +596,25 @@ export default function ProjectCard({
               </select>
             )}
             <WorkspaceLink url={project.workspace_url} onChange={onChangeWorkspace} />
+            <select
+              className="move-select"
+              value=""
+              title="Move to another section"
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                e.stopPropagation();
+                if (e.target.value) onMoveSection(e.target.value);
+              }}
+            >
+              <option value="">Move to…</option>
+              {sections
+                .filter((s) => s !== project.section)
+                .map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+            </select>
             {activeBlockers.map((blocker) => (
               <span
                 key={blocker.id}
