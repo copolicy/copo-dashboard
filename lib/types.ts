@@ -22,6 +22,7 @@ export interface Task {
   week: Week;
   due_date: string | null;
   carried_over: boolean;
+  asana_gid: string | null;
   done: boolean;
   manually_edited: boolean;
   created_at: string;

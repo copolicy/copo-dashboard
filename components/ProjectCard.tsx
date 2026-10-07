@@ -211,6 +211,19 @@ function TaskRow({
             </span>
           )}
           <LinkedText text={task.title} />
+          {task.asana_gid && (
+            <a
+              className="asana-link"
+              href={`https://app.asana.com/0/0/${task.asana_gid}/f`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Synced from Asana. Open it there."
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+            >
+              Asana ↗
+            </a>
+          )}
         </div>
       )}
       <DatePicker

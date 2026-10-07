@@ -1681,3 +1681,14 @@ select {
   color: var(--ink2);
   border-color: var(--border2);
 }
+.asana-link {
+  margin-left: 6px;
+  font-size: 10px;
+  color: var(--ink3);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.asana-link:hover {
+  color: var(--blue);
+  text-decoration: underline;
+}
