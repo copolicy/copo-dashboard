@@ -170,8 +170,12 @@ export async function setTaskDueDate(taskId: string, dueDate: string | null) {
   if (error) throw error;
 }
 
-export async function deleteTask(taskId: string) {
-  const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+// Tasks synced from Asana are hidden rather than deleted, so the daily
+// Asana sync doesn't add them straight back.
+export async function deleteTask(taskId: string, fromAsana = false) {
+  const { error } = fromAsana
+    ? await supabase.from("tasks").update({ hidden: true }).eq("id", taskId)
+    : await supabase.from("tasks").delete().eq("id", taskId);
   if (error) throw error;
 }
 

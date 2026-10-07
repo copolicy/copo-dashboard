@@ -127,12 +127,15 @@ export default function Home() {
   }
 
   async function handleDeleteTask(projectId: string, taskId: string) {
+    const fromAsana = !!projects
+      .find((p) => p.id === projectId)
+      ?.tasks.find((t) => t.id === taskId)?.asana_gid;
     updateProject(projectId, (p) => ({
       ...p,
       tasks: p.tasks.filter((t) => t.id !== taskId),
     }));
     try {
-      await deleteTask(taskId);
+      await deleteTask(taskId, fromAsana);
     } catch (e) {
       setSyncError(String((e as Error).message ?? e));
     }

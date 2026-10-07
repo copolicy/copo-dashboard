@@ -1692,3 +1692,23 @@ select {
   color: var(--blue);
   text-decoration: underline;
 }
+
+/* task delete: easier to see and hit */
+.task-row .task-delete {
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: opacity 0.1s, background 0.1s, color 0.1s;
+}
+.task-row .task-delete:hover,
+.task-row .task-delete:focus-visible {
+  opacity: 1;
+  color: var(--danger);
+  background: var(--danger-light);
+}
+@media (hover: none) {
+  .task-row .task-delete {
+    opacity: 0.6;
+  }
+}

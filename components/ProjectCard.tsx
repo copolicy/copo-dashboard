@@ -246,7 +246,12 @@ function TaskRow({
           {moveDirection === "next" ? "→" : "←"}
         </button>
       )}
-      <button className="task-delete" onClick={onDelete}>
+      <button
+        className="task-delete"
+        onClick={onDelete}
+        title="Delete task"
+        aria-label="Delete task"
+      >
         ×
       </button>
     </div>
@@ -536,8 +541,9 @@ export default function ProjectCard({
 
   const byDue = (a: Task, b: Task) =>
     (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999");
-  const thisWeek = project.tasks.filter((t) => taskWeek(t) === "this").sort(byDue);
-  const nextWeek = project.tasks.filter((t) => taskWeek(t) === "next").sort(byDue);
+  const visibleTasks = project.tasks.filter((t) => !t.hidden);
+  const thisWeek = visibleTasks.filter((t) => taskWeek(t) === "this").sort(byDue);
+  const nextWeek = visibleTasks.filter((t) => taskWeek(t) === "next").sort(byDue);
   const milestones = [...project.timeline_milestones].sort((a, b) =>
     a.date.localeCompare(b.date)
   );

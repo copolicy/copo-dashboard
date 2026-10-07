@@ -147,3 +147,9 @@ language sql as $$
 $$;
 create extension if not exists pg_cron;
 select cron.schedule('copo-weekly-rollover', '0 8 * * 1', $$select copo_weekly_rollover()$$);
+
+-- Asana sync: link + hide (deleting a synced task hides it so the sync
+-- doesn't re-add it).
+alter table tasks add column asana_gid text;
+create unique index tasks_asana_gid_key on tasks (asana_gid) where asana_gid is not null;
+alter table tasks add column hidden boolean not null default false;
