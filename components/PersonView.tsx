@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import LinkedText from "@/components/LinkedText";
+import { PencilIcon } from "@/components/ProjectCard";
 import { fetchRecentMeetings } from "@/lib/data";
 import type { ClientMeeting, Project, Task } from "@/lib/types";
 
@@ -82,15 +83,120 @@ function formatDue(iso: string) {
 
 type Row = { task: Task; project: Project };
 
+// One task on a person's page. Double-click the text, or use the pencil
+// button, to edit it. The "Adam: " owner prefix is hidden while editing
+// and put back on save, so the task stays on the right person's page.
+function PersonTask({
+  task,
+  project,
+  person,
+  onToggle,
+  onEdit,
+  onSelectProject,
+}: {
+  task: Task;
+  project: Project;
+  person: string;
+  onToggle: () => void;
+  onEdit: (title: string) => void;
+  onSelectProject: () => void;
+}) {
+  const prefix = new RegExp(`^${person}:\\s*`).test(task.title) ? `${person}: ` : "";
+  const shown = withoutOwner(task.title, person);
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(shown);
+  const overdue = !task.done && bucketFor(task) === "overdue";
+
+  function startEdit() {
+    setValue(shown);
+    setEditing(true);
+  }
+
+  function commit() {
+    setEditing(false);
+    const trimmed = value.trim();
+    if (!trimmed || trimmed === shown) return;
+    onEdit(prefix + trimmed);
+  }
+
+  return (
+    <div className="person-task">
+      <button
+        className={`task-check ${task.done ? "checked" : ""}`}
+        onClick={onToggle}
+        aria-label={task.done ? "Mark not done" : "Mark done"}
+      />
+      <div className={`person-task-body ${task.done ? "checked" : ""}`}>
+        {editing ? (
+          <input
+            className="task-edit-input person-task-input"
+            value={value}
+            autoFocus
+            onChange={(e) => setValue(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commit();
+              if (e.key === "Escape") setEditing(false);
+            }}
+          />
+        ) : (
+          <div
+            className="person-task-title"
+            onDoubleClick={startEdit}
+            title="Double-click to edit"
+          >
+            <LinkedText text={shown} />
+          </div>
+        )}
+        <div className="person-task-meta">
+          <button className="person-client" onClick={onSelectProject}>
+            {project.name}
+          </button>
+          {task.due_date && (
+            <span className={`person-due ${overdue ? "overdue" : ""}`}>
+              Due {formatDue(task.due_date)}
+            </span>
+          )}
+          {task.carried_over && !task.done && (
+            <span className="carried-tag">Carried over</span>
+          )}
+          {task.asana_gid && (
+            <a
+              className="asana-link"
+              href={`https://app.asana.com/0/0/${task.asana_gid}/f`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Asana ↗
+            </a>
+          )}
+        </div>
+      </div>
+      {!editing && (
+        <button
+          className="task-edit"
+          onClick={startEdit}
+          title="Edit task"
+          aria-label="Edit task"
+        >
+          <PencilIcon />
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function PersonView({
   person,
   projects,
   onToggleTask,
+  onEditTask,
   onSelectProject,
 }: {
   person: string;
   projects: Project[];
   onToggleTask: (projectId: string, taskId: string, done: boolean) => void;
+  onEditTask: (projectId: string, taskId: string, title: string) => void;
   onSelectProject: (section: string, projectId: string) => void;
 }) {
   const [meetings, setMeetings] = useState<ClientMeeting[] | null>(null);
@@ -136,46 +242,16 @@ export default function PersonView({
   const thisWeekCount = byBucket("this").length;
 
   function renderTask({ task, project }: Row) {
-    const overdue = !task.done && bucketFor(task) === "overdue";
     return (
-      <div className="person-task" key={task.id}>
-        <button
-          className={`task-check ${task.done ? "checked" : ""}`}
-          onClick={() => onToggleTask(project.id, task.id, !task.done)}
-          aria-label={task.done ? "Mark not done" : "Mark done"}
-        />
-        <div className={`person-task-body ${task.done ? "checked" : ""}`}>
-          <div className="person-task-title">
-            <LinkedText text={withoutOwner(task.title, person)} />
-          </div>
-          <div className="person-task-meta">
-            <button
-              className="person-client"
-              onClick={() => onSelectProject(project.section, project.id)}
-            >
-              {project.name}
-            </button>
-            {task.due_date && (
-              <span className={`person-due ${overdue ? "overdue" : ""}`}>
-                Due {formatDue(task.due_date)}
-              </span>
-            )}
-            {task.carried_over && !task.done && (
-              <span className="carried-tag">Carried over</span>
-            )}
-            {task.asana_gid && (
-              <a
-                className="asana-link"
-                href={`https://app.asana.com/0/0/${task.asana_gid}/f`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Asana ↗
-              </a>
-            )}
-          </div>
-        </div>
-      </div>
+      <PersonTask
+        key={task.id}
+        task={task}
+        project={project}
+        person={person}
+        onToggle={() => onToggleTask(project.id, task.id, !task.done)}
+        onEdit={(title) => onEditTask(project.id, task.id, title)}
+        onSelectProject={() => onSelectProject(project.section, project.id)}
+      />
     );
   }
 

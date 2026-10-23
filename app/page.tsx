@@ -599,6 +599,7 @@ export default function Home() {
             person={view.person}
             projects={projects}
             onToggleTask={handleToggleTask}
+            onEditTask={handleEditTask}
             onSelectProject={selectProject}
           />
         ) : view.type === "calendar" ? (
