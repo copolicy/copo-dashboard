@@ -501,6 +501,16 @@ export default function Home() {
     return { activeClients, wrapping, pipeline, openBlockers };
   }, [projects]);
 
+  // The sync routine stamps granola_synced_at on every live project each run,
+  // so the newest stamp is when the dashboard data was last refreshed.
+  const lastUpdated = useMemo(() => {
+    const stamps = projects
+      .map((p) => p.granola_synced_at)
+      .filter((s): s is string => !!s)
+      .sort();
+    return stamps.length ? stamps[stamps.length - 1] : null;
+  }, [projects]);
+
   const cardListProps = {
     expandedIds,
     focusedId,
@@ -552,6 +562,19 @@ export default function Home() {
       />
 
       <main className="main">
+        {lastUpdated && (
+          <div className="last-updated">
+            Last updated{" "}
+            {new Date(lastUpdated).toLocaleString("en-US", {
+              timeZone: "America/Toronto",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+          </div>
+        )}
+
         {syncError && (
           <div
             style={{
