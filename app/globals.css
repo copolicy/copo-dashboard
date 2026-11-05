@@ -25,7 +25,8 @@
   --blue: #1a5f8a;
   --blue-light: #e8f3fb;
   --blue-text: #0d3d5c;
-  --radius: 8px;
+  --radius: 10px;
+  --gap: 16px;
   --font-text: "Frank Ruhl Libre";
   --font-head: "Manrope";
 }
@@ -90,7 +91,7 @@ select {
   margin-bottom: 8px;
 }
 .nav-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -206,7 +207,7 @@ select {
 /* main */
 .main {
   flex: 1;
-  padding: 28px 32px;
+  padding: 32px 40px 48px;
   overflow-y: auto;
 }
 .last-updated {
@@ -225,7 +226,7 @@ select {
   gap: 16px;
 }
 .week-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -233,7 +234,7 @@ select {
   margin-bottom: 4px;
 }
 .week-title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -309,7 +310,7 @@ select {
 .project-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   margin-bottom: 12px;
   overflow: hidden;
 }
@@ -357,7 +358,7 @@ select {
   align-items: center;
 }
 .badge {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 4px;
@@ -390,7 +391,7 @@ select {
   text-overflow: ellipsis;
 }
 .stage-select {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
@@ -401,7 +402,7 @@ select {
   cursor: pointer;
 }
 .btn-move-active {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 4px;
@@ -419,7 +420,7 @@ select {
   color: #fff;
 }
 .phase-select {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
@@ -430,7 +431,7 @@ select {
   cursor: pointer;
 }
 .nav-count {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 8px;
@@ -455,7 +456,7 @@ select {
   padding-top: 14px;
 }
 .col-head {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -481,7 +482,7 @@ select {
   width: 15px;
   height: 15px;
   border: 1.5px solid var(--border2);
-  border-radius: 3px;
+  border-radius: 4px;
   flex-shrink: 0;
   margin-top: 1px;
   cursor: pointer;
@@ -501,7 +502,7 @@ select {
 }
 .task-check.checked::after {
   content: "\2713";
-  font-size: 9px;
+  font-size: 11px;
   color: #fff;
   font-weight: 700;
 }
@@ -517,7 +518,7 @@ select {
   flex: 1;
   padding: 1px 4px;
   border: 1px solid var(--ink);
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 13px;
   font-family: inherit;
   color: var(--ink);
@@ -653,7 +654,7 @@ select {
   padding: 8px 12px 6px;
 }
 .blocker-tag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -693,7 +694,7 @@ select {
   border-top: 1px solid var(--border);
 }
 .timeline-head {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -722,7 +723,7 @@ select {
   color: var(--ink2);
 }
 .milestone-flag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 4px;
@@ -840,7 +841,7 @@ select {
 .intel-section {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 16px 18px;
   margin-bottom: 12px;
 }
@@ -863,7 +864,7 @@ select {
   border-bottom: none;
 }
 .intel-client-tag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -886,7 +887,7 @@ select {
 }
 .modal {
   background: var(--card);
-  border-radius: 10px;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   padding: 20px;
   width: 300px;
@@ -950,7 +951,7 @@ select {
   margin-bottom: 6px;
 }
 .calendar-weekday {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1005,7 +1006,7 @@ select {
   overflow-y: auto;
 }
 .calendar-chip {
-  font-size: 10px;
+  font-size: 11px;
   text-align: left;
   padding: 2px 5px;
   border-radius: 4px;
@@ -1047,7 +1048,7 @@ select {
   color: var(--ink2);
 }
 .nav-caret {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0;
 }
 
@@ -1141,7 +1142,7 @@ select {
   margin-bottom: 6px;
 }
 .intake-list-title {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1267,7 +1268,7 @@ select {
   gap: 2px;
 }
 .ws-link {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 4px;
@@ -1298,7 +1299,7 @@ select {
   color: var(--ink);
 }
 .ws-add {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   padding: 2px 7px;
   border-radius: 4px;
@@ -1331,7 +1332,7 @@ select {
   border-color: var(--ink);
 }
 .ws-btn {
-  font-size: 10px;
+  font-size: 11px;
   padding: 3px 7px;
   border-radius: 4px;
   border: 1px solid var(--border2);
@@ -1368,7 +1369,7 @@ select {
 /* timeline items surfaced in the This week / Next week columns */
 .due-tag {
   display: inline-block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 1px 6px;
   margin-right: 6px;
@@ -1392,7 +1393,7 @@ select {
   padding: 1px 6px;
   border: none;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
   background: var(--active-bg);
@@ -1582,7 +1583,7 @@ select {
   margin-top: 3px;
 }
 .meeting-sub {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1603,7 +1604,7 @@ select {
 }
 .insight-kind {
   display: inline-block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 4px;
@@ -1695,7 +1696,7 @@ select {
 }
 .carried-tag {
   display: inline-block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 1px 6px;
   margin-right: 6px;
@@ -1708,7 +1709,7 @@ select {
 
 /* "Move to…" section menu on project cards */
 .move-select {
-  font-size: 10px;
+  font-size: 11px;
   padding: 1px 4px;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -1724,7 +1725,7 @@ select {
 }
 .asana-link {
   margin-left: 6px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--ink3);
   text-decoration: none;
   white-space: nowrap;
@@ -1860,7 +1861,7 @@ select {
   margin-top: 3px;
 }
 .person-client {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 4px;
@@ -1874,7 +1875,7 @@ select {
   color: var(--ink);
 }
 .person-due {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--ink3);
 }
@@ -1899,7 +1900,7 @@ select {
   line-height: 1.45;
 }
 .person-mention-src {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--ink3);
 }
 
@@ -1959,7 +1960,7 @@ select {
   cursor: pointer;
 }
 .upcoming-owner {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 4px;
@@ -1967,7 +1968,7 @@ select {
   color: var(--blue-text);
 }
 .upcoming-kind {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--accent-text);
 }
@@ -2040,7 +2041,7 @@ select {
 }
 .progress-label {
   margin-top: 5px;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--ink3);
 }
@@ -2057,4 +2058,92 @@ select {
 }
 .nav-item.drop-below {
   box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* ---- cleanup pass ---- */
+.main > * {
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.stats {
+  gap: 12px;
+}
+.stat {
+  padding: 14px 16px;
+}
+.project-card {
+  margin-bottom: 12px;
+}
+.pc-header {
+  padding: 12px 18px 14px;
+}
+.badge,
+.phase-select,
+.stage-select,
+.move-select,
+.ws-add,
+.ws-link,
+.person-client,
+.upcoming-owner,
+.carried-tag {
+  font-size: 11px;
+  line-height: 18px;
+  padding: 0 8px;
+  border-radius: 4px;
+}
+
+/* calmer cards: secondary controls show on hover or when open */
+.project-card:not(.expanded):not(:hover) .pc-quiet,
+.project-card:not(.expanded):not(:hover) .ws-add {
+  display: none;
+}
+
+/* sidebar groups */
+.nav-group {
+  margin-bottom: 14px;
+}
+.nav-group .nav-label {
+  margin-bottom: 2px;
+}
+.nav-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2px 18px 14px;
+}
+.nav-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-label-row .nav-label-link {
+  flex: 1;
+  text-align: left;
+}
+.nav-empty {
+  color: var(--border2);
+}
+.nav-label-add {
+  opacity: 0;
+  border: none;
+  background: none;
+  color: var(--ink3);
+  font-size: 15px;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+.nav-group:hover .nav-label-add,
+.nav-label-add:focus-visible {
+  opacity: 1;
+}
+.nav-label-add:hover {
+  background: var(--active-bg);
+  color: var(--ink);
+}
+.sidebar-bottom {
+  border-top: none;
 }

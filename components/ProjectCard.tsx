@@ -574,7 +574,7 @@ export default function ProjectCard({
   const showPhase = project.status === "active" || project.status === "retainer";
 
   return (
-    <div className={`project-card ${isClosed ? "closed" : ""}`} ref={cardRef}>
+    <div className={`project-card ${isClosed ? "closed" : ""} ${expanded ? "expanded" : ""}`} ref={cardRef}>
       {!isPipeline && (
         <ProjectProgress
           project={project}
@@ -622,7 +622,7 @@ export default function ProjectCard({
             )}
             {showPhase && (
               <select
-                className="phase-select"
+                className="phase-select pc-quiet"
                 value={project.project_phase ?? ""}
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => {
@@ -642,7 +642,7 @@ export default function ProjectCard({
             )}
             <WorkspaceLink url={project.workspace_url} onChange={onChangeWorkspace} />
             <select
-              className="move-select"
+              className="move-select pc-quiet"
               value=""
               title="Move to another section"
               onClick={(e) => e.stopPropagation()}

@@ -99,40 +99,28 @@ export default function Sidebar({
       </div>
 
       <div className="nav-group">
-        <div
-          className={`nav-item ${view.type === "overview" ? "active" : ""}`}
-          onClick={() => onSelectView({ type: "overview" })}
-        >
-          <div className="nav-item-left">Overview</div>
-        </div>
-        <div
-          className={`nav-item ${view.type === "upcoming" ? "active" : ""}`}
-          onClick={() => onSelectView({ type: "upcoming" })}
-        >
-          <div className="nav-item-left">Upcoming work</div>
-          {overdueCount > 0 && <span className="nav-count">{overdueCount}</span>}
-        </div>
-        <div
-          className={`nav-item ${view.type === "intel" ? "active" : ""}`}
-          onClick={() => onSelectView({ type: "intel" })}
-        >
-          <div className="nav-item-left">Key intel</div>
-        </div>
-        <div
-          className={`nav-item ${view.type === "contractors" ? "active" : ""}`}
-          onClick={() => onSelectView({ type: "contractors" })}
-        >
-          <div className="nav-item-left">Contractors</div>
-          {endingSoonCount > 0 && (
-            <span className="nav-count">{endingSoonCount}</span>
-          )}
-        </div>
-        <div
-          className={`nav-item ${view.type === "calendar" ? "active" : ""}`}
-          onClick={() => onSelectView({ type: "calendar" })}
-        >
-          <div className="nav-item-left">Calendar</div>
-        </div>
+        <div className="nav-label">Views</div>
+        {(
+          [
+            ["overview", "Overview", 0],
+            ["upcoming", "Upcoming work", overdueCount],
+            ["intel", "Key intel", 0],
+            ["calendar", "Calendar", 0],
+          ] as const
+        ).map(([type, label, count]) => (
+          <div
+            key={type}
+            className={`nav-item ${view.type === type ? "active" : ""}`}
+            onClick={() => onSelectView({ type })}
+          >
+            <div className="nav-item-left">{label}</div>
+            {count > 0 && <span className="nav-count">{count}</span>}
+          </div>
+        ))}
+      </div>
+
+      <div className="nav-group">
+        <div className="nav-label">People</div>
         {PEOPLE.map((person) => {
           const openCount = projects
             .filter((p) => p.section !== ARCHIVED_SECTION)
@@ -157,7 +145,16 @@ export default function Sidebar({
             </div>
           );
         })}
+        <div
+          className={`nav-item ${view.type === "contractors" ? "active" : ""}`}
+          onClick={() => onSelectView({ type: "contractors" })}
+        >
+          <div className="nav-item-left">Contractors</div>
+          {endingSoonCount > 0 && <span className="nav-count">{endingSoonCount}</span>}
+        </div>
       </div>
+
+      <div className="nav-divider" />
 
       {sections.map((section) => {
         const sectionProjects = projects.filter((p) => p.section === section);
@@ -190,13 +187,26 @@ export default function Sidebar({
                 <span className="nav-caret">▾</span>
               </button>
             ) : (
-              <button
-                className="nav-label nav-label-link"
-                onClick={() => onSelectView({ type: "section", section })}
-                title={`See all ${section}`}
-              >
-                {section}
-              </button>
+              <div className="nav-label-row">
+                <button
+                  className="nav-label nav-label-link"
+                  onClick={() => onSelectView({ type: "section", section })}
+                  title={`See all ${section}`}
+                >
+                  {section}
+                  {sectionProjects.length === 0 && (
+                    <span className="nav-empty"> · 0</span>
+                  )}
+                </button>
+                <button
+                  className="nav-label-add"
+                  onClick={() => onAddClient(section)}
+                  title={section === "Active clients" ? "New project intake" : `Add to ${section}`}
+                  aria-label={section === "Active clients" ? "New project intake" : `Add to ${section}`}
+                >
+                  +
+                </button>
+              </div>
             )}
             {sectionProjects.map((p) => (
               <div
@@ -240,20 +250,12 @@ export default function Sidebar({
                 </div>
               </div>
             ))}
-            {!isArchived && (
-              <button
-                className="nav-add"
-                onClick={() => onAddClient(section)}
-              >
-                {section === "Active clients" ? "+ New project intake" : "+ Add client"}
-              </button>
-            )}
           </div>
         );
       })}
 
       <div className="sidebar-bottom">
-        <button className="add-section-btn" onClick={onAddSection}>
+        <button className="nav-add" onClick={onAddSection}>
           + Add section
         </button>
       </div>
