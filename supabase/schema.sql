@@ -157,3 +157,6 @@ alter table tasks add column hidden boolean not null default false;
 -- Free-form notes per client (client page).
 alter table projects add column notes text not null default '';
 alter table projects add column notes_updated_at timestamptz;
+
+-- Manual sidebar order within each section (drag to reorder). Null sorts last.
+alter table projects add column if not exists sort_order int;

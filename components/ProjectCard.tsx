@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import ProjectProgress from "@/components/ProjectProgress";
 import LinkedText, { isUrl, withLink } from "@/components/LinkedText";
 import WorkspaceLink from "@/components/WorkspaceLink";
 import type {
@@ -574,6 +575,12 @@ export default function ProjectCard({
 
   return (
     <div className={`project-card ${isClosed ? "closed" : ""}`} ref={cardRef}>
+      {!isPipeline && (
+        <ProjectProgress
+          project={project}
+          phaseLabel={project.project_phase ? PHASE_LABELS[project.project_phase] : null}
+        />
+      )}
       <div className="pc-header" onClick={onToggleExpand}>
         <div className={`pc-dot ${dotClass(project.status, isClosed)}`} />
         <div className="pc-info">

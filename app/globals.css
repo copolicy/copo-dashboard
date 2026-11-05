@@ -26,6 +26,8 @@
   --blue-light: #e8f3fb;
   --blue-text: #0d3d5c;
   --radius: 8px;
+  --font-text: "Frank Ruhl Libre";
+  --font-head: "Manrope";
 }
 
 html,
@@ -34,7 +36,7 @@ body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-family: var(--font-text), Georgia, serif;
   background: var(--paper);
   color: var(--ink);
   font-size: 14px;
@@ -1979,4 +1981,80 @@ select {
 }
 .upcoming-diamond.invoice {
   background: var(--warn);
+}
+
+/* typography: Manrope, all caps, for headers and subtitles */
+.logo-text,
+.logo-sub,
+.nav-label,
+.week-label,
+.week-title,
+.section-title,
+.pc-name,
+.col-head,
+.timeline-head,
+.stat-l,
+.intel-title,
+.modal-title,
+.modal-label,
+.intake-title,
+.intake-list-title,
+.calendar-cell-head,
+.client-panel-head,
+.client-team,
+.pc-team,
+.meeting-title,
+.date-field-label,
+.contractor-name,
+.progress-label {
+  font-family: var(--font-head), "Helvetica Neue", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.week-title {
+  letter-spacing: 0.02em;
+  font-weight: 800;
+}
+.pc-name,
+.contractor-name,
+.meeting-title {
+  letter-spacing: 0.03em;
+  font-weight: 700;
+}
+
+/* project progress bar */
+.progress {
+  padding: 12px 18px 0;
+}
+.progress-track {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--active-bg);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+.progress-label {
+  margin-top: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--ink3);
+}
+
+/* sidebar drag to reorder */
+.nav-item[draggable="true"] {
+  cursor: grab;
+}
+.nav-item.dragging {
+  opacity: 0.4;
+}
+.nav-item.drop-above {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.nav-item.drop-below {
+  box-shadow: inset 0 -2px 0 var(--accent);
 }

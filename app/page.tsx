@@ -33,7 +33,9 @@ import {
   resolveBlocker,
   setMilestoneCompleted,
   setPipelineStage,
+  setProjectOrder,
   setProjectPhase,
+  sortProjects,
   setTaskDone,
   setTaskDueDate,
   setTaskWeek,
@@ -476,6 +478,22 @@ export default function Home() {
     }
   }
 
+  async function handleReorder(section: string, orderedIds: string[]) {
+    const rank = new Map(orderedIds.map((id, i) => [id, i]));
+    setProjects((prev) =>
+      sortProjects(
+        prev.map((p) =>
+          p.section === section && rank.has(p.id) ? { ...p, sort_order: rank.get(p.id)! } : p
+        )
+      )
+    );
+    try {
+      await setProjectOrder(orderedIds);
+    } catch (e) {
+      setSyncError(String((e as Error).message ?? e));
+    }
+  }
+
   // Clicking a client anywhere (sidebar, calendar) opens its own page.
   function selectProject(_section: string, projectId: string) {
     setView({ type: "client", projectId });
@@ -556,6 +574,7 @@ export default function Home() {
           setModalSection(section);
           setModalOpen(true);
         }}
+        onReorder={handleReorder}
         onAddSection={() => {
           setModalSection("");
           setModalOpen(true);

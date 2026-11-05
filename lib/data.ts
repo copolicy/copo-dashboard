@@ -24,7 +24,36 @@ export async function fetchProjects(): Promise<Project[]> {
     .order("created_at", { ascending: true });
 
   if (error) throw error;
-  return (data ?? []) as unknown as Project[];
+  return sortProjects((data ?? []) as unknown as Project[]);
+}
+
+// Manual sidebar order first (sort_order), then oldest first for anything
+// that has never been dragged into place.
+export function sortProjects(projects: Project[]): Project[] {
+  return [...projects].sort((a, b) => {
+    const ao = a.sort_order ?? Number.MAX_SAFE_INTEGER;
+    const bo = b.sort_order ?? Number.MAX_SAFE_INTEGER;
+    if (ao !== bo) return ao - bo;
+    return a.created_at.localeCompare(b.created_at);
+  });
+}
+
+// Saves a new order for the given projects (one sidebar section).
+export async function setProjectOrder(orderedIds: string[]) {
+  const results = await Promise.all(
+    orderedIds.map((id, i) =>
+      supabase.from("projects").update({ sort_order: i }).eq("id", id)
+    )
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) {
+    if (failed.error.message.includes("sort_order")) {
+      throw new Error(
+        "Sidebar order can't be saved yet: the projects.sort_order column still needs adding in Supabase."
+      );
+    }
+    throw failed.error;
+  }
 }
 
 export async function addProject(input: {

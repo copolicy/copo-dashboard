@@ -55,6 +55,7 @@ export default function Sidebar({
   onSelectProject,
   onAddClient,
   onAddSection,
+  onReorder,
 }: {
   projects: Project[];
   contractors: Contractor[];
@@ -63,9 +64,24 @@ export default function Sidebar({
   onSelectProject: (section: string, projectId: string) => void;
   onAddClient: (section: string) => void;
   onAddSection: () => void;
+  onReorder: (section: string, orderedIds: string[]) => void;
 }) {
   const sections = sectionsInOrder(projects);
   const [archivedOpen, setArchivedOpen] = useState(false);
+  // Drag a client up or down within its section to reorder it.
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropAt, setDropAt] = useState<{ id: string; after: boolean } | null>(null);
+
+  function handleDrop(section: string, sectionProjects: Project[]) {
+    if (!dragId || !dropAt || dragId === dropAt.id) return;
+    const ids = sectionProjects.map((p) => p.id).filter((id) => id !== dragId);
+    if (sectionProjects.every((p) => p.id !== dragId)) return;
+    let at = ids.indexOf(dropAt.id);
+    if (at < 0) return;
+    if (dropAt.after) at += 1;
+    ids.splice(at, 0, dragId);
+    onReorder(section, ids);
+  }
   const endingSoonCount = contractors.filter(contractEndingSoon).length;
   const overdueCount = projects
     .filter((p) => p.section !== ARCHIVED_SECTION)
@@ -186,8 +202,36 @@ export default function Sidebar({
               <div
                 className={`nav-item ${
                   view.type === "client" && view.projectId === p.id ? "active" : ""
+                } ${dragId === p.id ? "dragging" : ""} ${
+                  dropAt?.id === p.id && dragId && dragId !== p.id
+                    ? dropAt.after
+                      ? "drop-below"
+                      : "drop-above"
+                    : ""
                 }`}
                 key={p.id}
+                draggable={!isArchived}
+                title={isArchived ? undefined : "Drag to reorder"}
+                onDragStart={(e) => {
+                  setDragId(p.id);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  if (!dragId || !sectionProjects.some((x) => x.id === dragId)) return;
+                  e.preventDefault();
+                  const box = e.currentTarget.getBoundingClientRect();
+                  setDropAt({ id: p.id, after: e.clientY > box.top + box.height / 2 });
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDrop(section, sectionProjects);
+                  setDragId(null);
+                  setDropAt(null);
+                }}
+                onDragEnd={() => {
+                  setDragId(null);
+                  setDropAt(null);
+                }}
                 onClick={() => onSelectProject(section, p.id)}
               >
                 <div className="nav-item-left">
