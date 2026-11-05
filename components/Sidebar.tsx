@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import type { Contractor, Project, Status } from "@/lib/types";
-import { PEOPLE, ownerOf } from "@/components/PersonView";
+import { PEOPLE, bucketFor, ownerOf } from "@/components/PersonView";
 
 export type View =
   | { type: "overview" }
+  | { type: "upcoming" }
   | { type: "intel" }
   | { type: "contractors" }
   | { type: "calendar" }
@@ -66,6 +67,13 @@ export default function Sidebar({
   const sections = sectionsInOrder(projects);
   const [archivedOpen, setArchivedOpen] = useState(false);
   const endingSoonCount = contractors.filter(contractEndingSoon).length;
+  const overdueCount = projects
+    .filter((p) => p.section !== ARCHIVED_SECTION)
+    .reduce(
+      (n, p) =>
+        n + p.tasks.filter((t) => !t.done && !t.hidden && bucketFor(t) === "overdue").length,
+      0
+    );
 
   return (
     <aside className="sidebar">
@@ -80,6 +88,13 @@ export default function Sidebar({
           onClick={() => onSelectView({ type: "overview" })}
         >
           <div className="nav-item-left">Overview</div>
+        </div>
+        <div
+          className={`nav-item ${view.type === "upcoming" ? "active" : ""}`}
+          onClick={() => onSelectView({ type: "upcoming" })}
+        >
+          <div className="nav-item-left">Upcoming work</div>
+          {overdueCount > 0 && <span className="nav-count">{overdueCount}</span>}
         </div>
         <div
           className={`nav-item ${view.type === "intel" ? "active" : ""}`}

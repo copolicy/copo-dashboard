@@ -34,26 +34,26 @@ function withoutOwner(title: string, person: string) {
   return rest.charAt(0).toUpperCase() + rest.slice(1);
 }
 
-function parseIso(iso: string) {
+export function parseIso(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
 
-function startOfToday() {
+export function startOfToday() {
   const t = new Date();
   t.setHours(0, 0, 0, 0);
   return t;
 }
 
-function mondayOf(d: Date) {
+export function mondayOf(d: Date) {
   const m = new Date(d);
   m.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   return m;
 }
 
-type Bucket = "overdue" | "this" | "next" | "later";
+export type Bucket = "overdue" | "this" | "next" | "later";
 
-function bucketFor(task: Task): Bucket {
+export function bucketFor(task: Task): Bucket {
   if (task.due_date) {
     const due = parseIso(task.due_date);
     const today = startOfToday();
@@ -66,14 +66,14 @@ function bucketFor(task: Task): Bucket {
   return task.week === "next" ? "next" : "this";
 }
 
-const BUCKETS: { key: Bucket; label: string }[] = [
+export const BUCKETS: { key: Bucket; label: string }[] = [
   { key: "overdue", label: "Overdue" },
   { key: "this", label: "This week" },
   { key: "next", label: "Next week" },
   { key: "later", label: "Later" },
 ];
 
-function formatDue(iso: string) {
+export function formatDue(iso: string) {
   return parseIso(iso).toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",

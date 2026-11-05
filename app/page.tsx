@@ -14,6 +14,7 @@ import AddClientModal from "@/components/AddClientModal";
 import IntakeModal from "@/components/IntakeModal";
 import ClientPage from "@/components/ClientPage";
 import PersonView from "@/components/PersonView";
+import UpcomingView from "@/components/UpcomingView";
 import { plainText } from "@/components/LinkedText";
 import {
   addContractor,
@@ -607,6 +608,12 @@ export default function Home() {
 
         {loading ? (
           <div className="empty-state">Loading…</div>
+        ) : view.type === "upcoming" ? (
+          <UpcomingView
+            projects={projects}
+            onToggleTask={handleToggleTask}
+            onSelectProject={selectProject}
+          />
         ) : view.type === "intel" ? (
           <KeyIntel />
         ) : view.type === "contractors" ? (
