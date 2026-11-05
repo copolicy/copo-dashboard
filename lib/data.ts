@@ -386,6 +386,7 @@ export async function fetchKeyIntel(): Promise<KeyIntelItem[] | null> {
   const { data, error } = await supabase
     .from("key_intel")
     .select("*")
+    .eq("retired", false)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) return null;
@@ -409,6 +410,7 @@ export async function fetchClientDetail(projectId: string): Promise<ClientDetail
       .from("client_insights")
       .select("*")
       .eq("project_id", projectId)
+      .eq("retired", false)
       .order("sort_order", { ascending: true }),
   ]);
   for (const r of [links, meetings, insights]) if (r.error) throw r.error;

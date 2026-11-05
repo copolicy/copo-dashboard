@@ -160,3 +160,10 @@ alter table projects add column notes_updated_at timestamptz;
 
 -- Manual sidebar order within each section (drag to reorder). Null sorts last.
 alter table projects add column if not exists sort_order int;
+
+-- The sync overwrites insight and key intel rows in place by slot instead of
+-- deleting them. Rows it no longer needs are marked retired and hidden.
+alter table client_insights add column if not exists retired boolean not null default false;
+alter table key_intel add column if not exists retired boolean not null default false;
+create unique index if not exists client_insights_project_slot on client_insights (project_id, sort_order);
+create unique index if not exists key_intel_slot on key_intel (sort_order);
