@@ -13,6 +13,9 @@ import type {
   Project,
   ProjectPhase,
   Status,
+  StudioClosure,
+  SuggestedClient,
+  SuggestionStatus,
   Task,
   Week,
 } from "./types";
@@ -20,7 +23,7 @@ import type {
 export async function fetchProjects(): Promise<Project[]> {
   const { data, error } = await supabase
     .from("projects")
-    .select("*, tasks(*), blockers(*), timeline_milestones(*)")
+    .select("*, tasks(*), blockers(*), timeline_milestones(*), upcoming_meetings(*)")
     .order("created_at", { ascending: true });
 
   if (error) throw error;
@@ -185,7 +188,7 @@ export async function updateTaskTitle(taskId: string, title: string) {
 export async function setTaskWeek(taskId: string, week: Week) {
   const { error } = await supabase
     .from("tasks")
-    .update({ week, manually_edited: true })
+    .update({ week, week_set_at: new Date().toISOString(), manually_edited: true })
     .eq("id", taskId);
 
   if (error) throw error;
@@ -455,4 +458,33 @@ export async function fetchRecentMeetings(days: number): Promise<ClientMeeting[]
     .order("met_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as ClientMeeting[];
+}
+
+// Clients the sync noticed but didn't create. Returns [] if the table is missing.
+export async function fetchSuggestedClients(): Promise<SuggestedClient[]> {
+  const { data, error } = await supabase
+    .from("suggested_clients")
+    .select("*")
+    .eq("status", "new")
+    .order("created_at", { ascending: false });
+  if (error) return [];
+  return (data ?? []) as SuggestedClient[];
+}
+
+export async function setSuggestionStatus(id: string, status: SuggestionStatus) {
+  const { error } = await supabase
+    .from("suggested_clients")
+    .update({ status })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+// Studio closures, oldest first. Returns [] if the table is missing.
+export async function fetchStudioClosures(): Promise<StudioClosure[]> {
+  const { data, error } = await supabase
+    .from("studio_closures")
+    .select("*")
+    .order("start_date", { ascending: true });
+  if (error) return [];
+  return (data ?? []) as StudioClosure[];
 }

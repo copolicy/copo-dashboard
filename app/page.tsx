@@ -16,6 +16,8 @@ import ClientPage from "@/components/ClientPage";
 import PersonView from "@/components/PersonView";
 import UpcomingView from "@/components/UpcomingView";
 import { plainText } from "@/components/LinkedText";
+import SuggestedClients from "@/components/SuggestedClients";
+import { ClosuresContext } from "@/lib/closures";
 import {
   addContractor,
   addMilestone,
@@ -27,6 +29,9 @@ import {
   deleteTask,
   fetchContractors,
   fetchProjects,
+  fetchStudioClosures,
+  fetchSuggestedClients,
+  setSuggestionStatus,
   moveProject,
   moveToActive,
   statusForSection,
@@ -53,8 +58,14 @@ import type {
   Project,
   ProjectPhase,
   Status,
+  StudioClosure,
+  SuggestedClient,
   Week,
 } from "@/lib/types";
+
+// The sync runs every morning. Past these ages the data is getting old.
+const STALE_AFTER_HOURS = 12;
+const VERY_STALE_AFTER_HOURS = 24;
 
 const CLOSED_PIPELINE_STAGES: PipelineStage[] = ["closed_won", "closed_lost", "ghost"];
 
@@ -72,6 +83,9 @@ export default function Home() {
   const [intakeKey, setIntakeKey] = useState(0);
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [calendarNotice, setCalendarNotice] = useState<string | null>(null);
+  const [closures, setClosures] = useState<StudioClosure[]>([]);
+  const [suggestions, setSuggestions] = useState<SuggestedClient[]>([]);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     Promise.all([fetchProjects(), fetchContractors()])
@@ -81,6 +95,12 @@ export default function Home() {
       })
       .catch((e) => setSyncError(String(e.message ?? e)))
       .finally(() => setLoading(false));
+
+    fetchStudioClosures().then(setClosures);
+    fetchSuggestedClients().then(setSuggestions);
+
+    // Keep the "last updated" age current if the tab stays open.
+    const tick = setInterval(() => setNow(Date.now()), 5 * 60 * 1000);
 
     fetch("/api/calendar/status")
       .then((res) => res.json())
@@ -96,6 +116,8 @@ export default function Home() {
       setCalendarNotice(`Google Calendar connection failed: ${params.get("calendar_error")}`);
       window.history.replaceState({}, "", window.location.pathname);
     }
+
+    return () => clearInterval(tick);
   }, []);
 
   function updateProject(projectId: string, updater: (p: Project) => Project) {
@@ -363,6 +385,32 @@ export default function Home() {
       });
   }
 
+  async function handleAddSuggestion(s: SuggestedClient) {
+    setSuggestions((prev) => prev.filter((x) => x.id !== s.id));
+    const isLead = s.source === "asana_lead";
+    await handleAddProject({
+      name: s.name,
+      section: isLead ? "Pipeline" : "Active clients",
+      status: isLead ? "pipeline" : "active",
+      team: [],
+      pipeline_stage: isLead ? "talks" : null,
+    });
+    try {
+      await setSuggestionStatus(s.id, "added");
+    } catch (e) {
+      setSyncError(String((e as Error).message ?? e));
+    }
+  }
+
+  async function handleDismissSuggestion(s: SuggestedClient) {
+    setSuggestions((prev) => prev.filter((x) => x.id !== s.id));
+    try {
+      await setSuggestionStatus(s.id, "dismissed");
+    } catch (e) {
+      setSyncError(String((e as Error).message ?? e));
+    }
+  }
+
   function openIntake() {
     setIntakeKey((k) => k + 1);
     setIntakeOpen(true);
@@ -530,6 +578,10 @@ export default function Home() {
     return stamps.length ? stamps[stamps.length - 1] : null;
   }, [projects]);
 
+  const staleHours = lastUpdated ? (now - new Date(lastUpdated).getTime()) / 3600000 : 0;
+  const staleness =
+    staleHours >= VERY_STALE_AFTER_HOURS ? "very-stale" : staleHours >= STALE_AFTER_HOURS ? "stale" : "";
+
   const cardListProps = {
     expandedIds,
     focusedId,
@@ -556,6 +608,7 @@ export default function Home() {
   };
 
   return (
+    <ClosuresContext.Provider value={closures}>
     <div className="shell">
       <Sidebar
         projects={projects}
@@ -583,8 +636,16 @@ export default function Home() {
 
       <main className="main">
         {lastUpdated && (
-          <div className="last-updated">
-            Last updated{" "}
+          <div
+            className={`last-updated ${staleness}`}
+            title={
+              staleness
+                ? "The daily sync hasn't refreshed this data recently. Ask Claude to run it."
+                : undefined
+            }
+          >
+            {staleness && <span className="stale-dot" aria-hidden="true" />}
+            {staleness === "very-stale" ? "Out of date. Last updated " : "Last updated "}
             {new Date(lastUpdated).toLocaleString("en-US", {
               timeZone: "America/Toronto",
               month: "short",
@@ -710,6 +771,11 @@ export default function Home() {
                 <div className="stat-l">Pipeline</div>
               </div>
             </div>
+            <SuggestedClients
+              suggestions={suggestions}
+              onAdd={handleAddSuggestion}
+              onDismiss={handleDismissSuggestion}
+            />
             <ProjectCardList
               title="Active clients"
               projects={projects.filter((p) => p.section === "Active clients")}
@@ -758,5 +824,6 @@ export default function Home() {
         onSubmit={handleAddProject}
       />
     </div>
+    </ClosuresContext.Provider>
   );
 }

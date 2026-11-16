@@ -14,12 +14,40 @@ import {
   type Bucket,
 } from "@/components/PersonView";
 import type { Milestone, Project, Task } from "@/lib/types";
+import {
+  closureOn,
+  closuresBetween,
+  formatClosureRange,
+  useClosures,
+} from "@/lib/closures";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 type Item =
   | { kind: "task"; task: Task; project: Project; owner: string; date: string | null }
   | { kind: "milestone"; milestone: Milestone; project: Project; date: string };
+
+function isoOf(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// The date range each bucket covers, for showing studio closures in it.
+// "Later" looks ahead about two months.
+function bucketRange(b: Bucket): [string, string] | null {
+  const monday = mondayOf(startOfToday());
+  const plus = (n: number) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + n);
+    return isoOf(d);
+  };
+  if (b === "this") return [isoOf(startOfToday()), plus(6)];
+  if (b === "next") return [plus(7), plus(13)];
+  if (b === "later") return [plus(14), plus(70)];
+  return null;
+}
 
 // Milestones only show from today on: past ones are history, not upcoming work.
 function milestoneBucket(iso: string): Bucket | null {
@@ -48,6 +76,7 @@ export default function UpcomingView({
   const [owner, setOwner] = useState<string>("all");
   const [clientId, setClientId] = useState<string>("all");
   const [showMilestones, setShowMilestones] = useState(true);
+  const closures = useClosures();
 
   const live = useMemo(
     () => projects.filter((p) => p.section !== "Archived"),
@@ -141,6 +170,9 @@ export default function UpcomingView({
                 {m.kind === "invoice" ? "Invoice" : "Milestone"}
               </span>
               <span className="person-due">{formatDue(m.date)}</span>
+              {closureOn(m.date, closures) && (
+                <span className="closure-flag">Studio closed</span>
+              )}
             </div>
           </div>
         </div>
@@ -169,6 +201,9 @@ export default function UpcomingView({
               </span>
             ) : (
               <span className="person-due">No date</span>
+            )}
+            {task.due_date && closureOn(task.due_date, closures) && (
+              <span className="closure-flag">Studio closed</span>
             )}
             {task.carried_over && <span className="carried-tag">Carried over</span>}
             {task.asana_gid && (
@@ -270,12 +305,19 @@ export default function UpcomingView({
         )}
         {BUCKETS.map(({ key, label }) => {
           const list = byBucket(key);
-          if (list.length === 0) return null;
+          const range = bucketRange(key);
+          const closed = range ? closuresBetween(range[0], range[1], closures) : [];
+          if (list.length === 0 && closed.length === 0) return null;
           return (
             <div className={`person-group person-group-${key}`} key={key}>
               <div className="intel-title">
                 {label} <span className="person-count">{list.length}</span>
               </div>
+              {closed.map((c) => (
+                <div className="closure-band" key={c.id}>
+                  {c.label} · {formatClosureRange(c)}
+                </div>
+              ))}
               {list.map(renderItem)}
             </div>
           );

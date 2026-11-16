@@ -26,6 +26,11 @@ export interface Task {
   hidden: boolean;
   done: boolean;
   manually_edited: boolean;
+  // Asana's own completion state, written by the sync. null when unknown.
+  asana_completed?: boolean | null;
+  // When the week label was last set, so an undated "next week" task
+  // rolls into this week once that week arrives.
+  week_set_at?: string | null;
   created_at: string;
 }
 
@@ -67,6 +72,37 @@ export interface Project {
   tasks: Task[];
   blockers: Blocker[];
   timeline_milestones: Milestone[];
+  upcoming_meetings?: UpcomingMeeting[];
+}
+
+// A calendar meeting that hasn't happened yet, written by the Granola sync.
+export interface UpcomingMeeting {
+  id: string;
+  project_id: string;
+  event_id: string;
+  title: string;
+  starts_at: string;
+  url: string | null;
+}
+
+// A client the sync spotted (Granola, Asana leads) that isn't on the dashboard.
+export type SuggestionStatus = "new" | "added" | "dismissed";
+
+export interface SuggestedClient {
+  id: string;
+  name: string;
+  source: string;
+  reason: string;
+  status: SuggestionStatus;
+  created_at: string;
+}
+
+// Days the studio is closed, inclusive, as YYYY-MM-DD.
+export interface StudioClosure {
+  id: string;
+  label: string;
+  start_date: string;
+  end_date: string;
 }
 
 export interface Contractor {

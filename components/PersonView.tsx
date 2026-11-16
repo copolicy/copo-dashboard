@@ -14,7 +14,6 @@ export const DEFAULT_OWNER = "Nicole";
 
 const MEETING_LOOKBACK_DAYS = 21;
 const MENTIONS_SHOWN = 8;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Who a task belongs to, from how it's written: "Adam: send deck" or
 // "Adam to message Sheila". Returns null for tasks with no named owner.
@@ -34,37 +33,15 @@ function withoutOwner(title: string, person: string) {
   return rest.charAt(0).toUpperCase() + rest.slice(1);
 }
 
-export function parseIso(iso: string) {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
-export function startOfToday() {
-  const t = new Date();
-  t.setHours(0, 0, 0, 0);
-  return t;
-}
-
-export function mondayOf(d: Date) {
-  const m = new Date(d);
-  m.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return m;
-}
-
-export type Bucket = "overdue" | "this" | "next" | "later";
-
-export function bucketFor(task: Task): Bucket {
-  if (task.due_date) {
-    const due = parseIso(task.due_date);
-    const today = startOfToday();
-    if (due < today) return "overdue";
-    const diff = Math.round((due.getTime() - mondayOf(today).getTime()) / DAY_MS);
-    if (diff < 7) return "this";
-    if (diff < 14) return "next";
-    return "later";
-  }
-  return task.week === "next" ? "next" : "this";
-}
+export {
+  parseIso,
+  startOfToday,
+  mondayOf,
+  bucketFor,
+  asanaMismatch,
+  type Bucket,
+} from "@/lib/weeks";
+import { asanaMismatch, bucketFor, parseIso, type Bucket } from "@/lib/weeks";
 
 export const BUCKETS: { key: Bucket; label: string }[] = [
   { key: "overdue", label: "Overdue" },
@@ -169,6 +146,11 @@ function PersonTask({
             >
               Asana ↗
             </a>
+          )}
+          {asanaMismatch(task) && (
+            <span className="asana-open-tag" title="Ticked off here, still open in Asana">
+              Still open in Asana
+            </span>
           )}
         </div>
       </div>

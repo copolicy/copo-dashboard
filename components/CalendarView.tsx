@@ -15,6 +15,7 @@ import {
 } from "date-fns";
 import { plainText } from "@/components/LinkedText";
 import type { Contractor, MilestoneKind, Project } from "@/lib/types";
+import { closureOn, useClosures } from "@/lib/closures";
 
 interface CalendarItem {
   project: Project;
@@ -55,6 +56,7 @@ export default function CalendarView({
   const [formProjectId, setFormProjectId] = useState(projects[0]?.id ?? "");
   const [formTitle, setFormTitle] = useState("");
   const [formKind, setFormKind] = useState<MilestoneKind>("milestone");
+  const closures = useClosures();
 
   const itemsByDate = useMemo(() => {
     const map = new Map<string, CalendarItem[]>();
@@ -144,12 +146,14 @@ export default function CalendarView({
           const items = itemsByDate.get(iso) ?? [];
           const contractEnds = contractorEndsByDate.get(iso) ?? [];
           const inMonth = isSameMonth(day, monthAnchor);
+          const closure = closureOn(iso, closures);
           return (
             <div
               key={iso}
               className={`calendar-cell ${inMonth ? "" : "outside"} ${
                 isToday(day) ? "today" : ""
-              }`}
+              } ${closure ? "closed-day" : ""}`}
+              title={closure?.label}
             >
               <div className="calendar-cell-head">
                 <span className="calendar-daynum">{format(day, "d")}</span>
@@ -162,6 +166,9 @@ export default function CalendarView({
                 </button>
               </div>
               <div className="calendar-cell-items">
+                {closure && (closure.start_date === iso || day.getDay() === 0) && (
+                  <div className="calendar-chip chip-closure">{closure.label}</div>
+                )}
                 {items.map((item) => (
                   <button
                     key={item.milestoneId}

@@ -15,6 +15,8 @@ import type {
   Week,
 } from "@/lib/types";
 import DatePicker from "./DatePicker";
+import { asanaMismatch, bucketFor } from "@/lib/weeks";
+import { closureOn, useClosures } from "@/lib/closures";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -79,25 +81,29 @@ function weekBucket(iso: string): "this" | "next" | null {
   return null;
 }
 
-// Where a task shows: by its due date when it has one (overdue counts as
-// this week), otherwise by the week it was added to.
-function taskWeek(task: Task): Week {
-  if (!task.due_date) return task.week;
-  const [y, m, d] = task.due_date.split("-").map(Number);
-  const due = new Date(y, m - 1, d);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-  if (due < monday) return "this";
-  return weekBucket(task.due_date) ?? task.week;
-}
-
 function isOverdue(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return new Date(y, m - 1, d) < today;
+}
+
+// "Today 5:00 PM", "Thu 2:30 PM" or "Dec 3, 10:00 AM", in Toronto time.
+export function formatMeetingTime(iso: string) {
+  const tz = "America/Toronto";
+  const when = new Date(iso);
+  const dayKey = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: tz });
+  const time = when.toLocaleTimeString("en-US", {
+    timeZone: tz,
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  if (dayKey(when) === dayKey(new Date())) return `Today ${time}`;
+  const daysOut = (when.getTime() - Date.now()) / DAY_MS;
+  if (daysOut < 6) {
+    return `${when.toLocaleDateString("en-US", { timeZone: tz, weekday: "short" })} ${time}`;
+  }
+  return `${when.toLocaleDateString("en-US", { timeZone: tz, month: "short", day: "numeric" })}, ${time}`;
 }
 
 function formatDue(iso: string) {
@@ -234,6 +240,11 @@ function TaskRow({
               Asana ↗
             </a>
           )}
+          {asanaMismatch(task) && (
+            <span className="asana-open-tag" title="Ticked off here, still open in Asana">
+              Still open in Asana
+            </span>
+          )}
         </div>
       )}
       <DatePicker
@@ -309,6 +320,8 @@ function TaskColumn({
   const [linkOpen, setLinkOpen] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const activeTasks = tasks.filter((t) => !t.done);
+  const overdueTasks = activeTasks.filter((t) => bucketFor(t) === "overdue");
+  const currentTasks = activeTasks.filter((t) => bucketFor(t) !== "overdue");
   const completedTasks = tasks.filter((t) => t.done);
 
   function submit() {
@@ -332,7 +345,27 @@ function TaskColumn({
             onToggle={() => onToggleDue(m.id, !m.completed)}
           />
         ))}
-        {activeTasks.map((t) => (
+        {overdueTasks.length > 0 && (
+          <div className="col-subhead col-subhead-overdue">
+            Overdue <span className="person-count">{overdueTasks.length}</span>
+          </div>
+        )}
+        {overdueTasks.map((t) => (
+          <TaskRow
+            key={t.id}
+            task={t}
+            onToggle={() => onToggle(t.id)}
+            onDelete={() => onDelete(t.id)}
+            onEdit={(title) => onEdit(t.id, title)}
+            onChangeDue={(d) => onChangeDue(t.id, d)}
+            onMoveWeek={() => onMoveWeek(t.id)}
+            moveDirection={moveDirection}
+          />
+        ))}
+        {overdueTasks.length > 0 && currentTasks.length > 0 && (
+          <div className="col-subhead">{label}</div>
+        )}
+        {currentTasks.map((t) => (
           <TaskRow
             key={t.id}
             task={t}
@@ -441,6 +474,7 @@ function TimelineSection({
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [kind, setKind] = useState<MilestoneKind>("milestone");
+  const closures = useClosures();
 
   function submit() {
     const trimmed = title.trim();
@@ -471,6 +505,11 @@ function TimelineSection({
             )}
             <LinkedText text={m.title} />
           </div>
+          {!m.completed && closureOn(m.date, closures) && (
+            <span className="closure-flag" title={closureOn(m.date, closures)!.label}>
+              Studio closed
+            </span>
+          )}
           {!m.completed && isFlagged(m.date) && (
             <span className="milestone-flag">
               ⚠ {m.kind === "invoice" ? "Send soon" : "Due soon"}
@@ -562,8 +601,19 @@ export default function ProjectCard({
   const byDue = (a: Task, b: Task) =>
     (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999");
   const visibleTasks = project.tasks.filter((t) => !t.hidden);
-  const thisWeek = visibleTasks.filter((t) => taskWeek(t) === "this").sort(byDue);
-  const nextWeek = visibleTasks.filter((t) => taskWeek(t) === "next").sort(byDue);
+  const thisWeek = visibleTasks
+    .filter((t) => {
+      const b = bucketFor(t);
+      return b === "this" || b === "overdue";
+    })
+    .sort(byDue);
+  const nextWeek = visibleTasks.filter((t) => bucketFor(t) === "next").sort(byDue);
+  const overdueCount = visibleTasks.filter(
+    (t) => !t.done && bucketFor(t) === "overdue"
+  ).length;
+  const nextMeeting = [...(project.upcoming_meetings ?? [])]
+    .filter((m) => new Date(m.starts_at).getTime() > Date.now() - 60 * 60 * 1000)
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0];
   const milestones = [...project.timeline_milestones].sort((a, b) =>
     a.date.localeCompare(b.date)
   );
@@ -588,7 +638,15 @@ export default function ProjectCard({
           {project.team.length > 0 && (
             <div className="pc-team">{project.team.join(" · ")}</div>
           )}
+          {nextMeeting && (
+            <div className="pc-next-meeting">
+              Next meeting: {nextMeeting.title}, {formatMeetingTime(nextMeeting.starts_at)}
+            </div>
+          )}
           <div className="pc-badges">
+            {overdueCount > 0 && (
+              <span className="badge badge-overdue">{overdueCount} overdue</span>
+            )}
             <span className={badgeClass(project.status)}>
               {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
             </span>

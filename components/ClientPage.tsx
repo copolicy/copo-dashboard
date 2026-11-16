@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ComponentProps } from "react";
 import ProjectCardList from "@/components/ProjectCardList";
 import LinkedText, { shortLinkLabel } from "@/components/LinkedText";
 import { normalizeUrl } from "@/components/WorkspaceLink";
+import { formatMeetingTime } from "@/components/ProjectCard";
 import {
   addClientLink,
   deleteClientLink,
@@ -62,6 +63,10 @@ export default function ClientPage({
   }, [project.id]);
 
   const meetings = detail?.meetings ?? [];
+  const upcoming = [...(project.upcoming_meetings ?? [])]
+    .filter((m) => new Date(m.starts_at).getTime() > Date.now() - 60 * 60 * 1000)
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+    .slice(0, 5);
   const visibleMeetings = showAllMeetings ? meetings : meetings.slice(0, MEETINGS_SHOWN);
 
   return (
@@ -128,6 +133,26 @@ export default function ClientPage({
         </div>
 
         <aside className="client-side">
+          {upcoming.length > 0 && (
+            <section className="client-panel">
+              <div className="intel-title">Coming up</div>
+              {upcoming.map((m) => (
+                <div className="upcoming-meeting" key={m.id}>
+                  <div className="upcoming-meeting-when">{formatMeetingTime(m.starts_at)}</div>
+                  <div className="upcoming-meeting-title">
+                    {m.url ? (
+                      <a href={m.url} target="_blank" rel="noopener noreferrer">
+                        {m.title}
+                      </a>
+                    ) : (
+                      m.title
+                    )}
+                  </div>
+                </div>
+              ))}
+            </section>
+          )}
+
           <section className="client-panel">
             <div className="intel-title">Insights</div>
             {detail === null ? (
