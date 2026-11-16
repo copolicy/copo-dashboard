@@ -17,6 +17,12 @@ function fromIso(iso: string): Date | undefined {
   return new Date(y, m - 1, d);
 }
 
+function startOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
 function formatDisplay(iso: string) {
   const d = fromIso(iso);
   if (!d) return "";
@@ -93,6 +99,10 @@ export default function DatePicker({
             <DayPicker
               mode="single"
               selected={fromIso(value)}
+              defaultMonth={fromIso(value) ?? new Date()}
+              // Past days are dimmed so it's clear when a pick is already overdue.
+              modifiers={{ past: { before: startOfDay(new Date()) } }}
+              modifiersClassNames={{ past: "rdp-past" }}
               onSelect={(d) => {
                 if (d) {
                   onChange(toIso(d));

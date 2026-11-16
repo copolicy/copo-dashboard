@@ -52,6 +52,12 @@ select {
   color: inherit;
 }
 
+/* Every button, and links styled as buttons, use Manrope. */
+button,
+.btn {
+  font-family: var(--font-head), "Helvetica Neue", sans-serif;
+}
+
 .shell {
   display: flex;
   min-height: 100vh;
@@ -2316,4 +2322,13 @@ select {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* date picker: dim past days, make today stand out */
+.date-picker-popover .rdp-past:not(.rdp-selected) .rdp-day_button {
+  color: var(--ink3);
+  opacity: 0.55;
+}
+.date-picker-popover .rdp-today .rdp-day_button {
+  font-weight: 800;
 }
