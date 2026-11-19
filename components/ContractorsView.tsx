@@ -192,29 +192,7 @@ export default function ContractorsView({
       </div>
 
       <div className="intel-section">
-        {contractors.length === 0 && (
-          <div className="empty-state">No contractors tracked yet.</div>
-        )}
-        {contractors.map((c) => (
-          <div
-            className="contractor-row contractor-row-clickable"
-            key={c.id}
-            onClick={() => setEditingId(c.id)}
-            title="Click to edit"
-          >
-            <div className="contractor-info">
-              <div className="contractor-name">{c.name}</div>
-              {c.role && <div className="contractor-role">{c.role}</div>}
-            </div>
-            <div className="contractor-date">{dateRangeLabel(c)}</div>
-            {isEndingSoon(c) && (
-              <span className="milestone-flag">⚠ Contract ends within 2 weeks</span>
-            )}
-            <span className="contractor-edit-hint">Edit</span>
-          </div>
-        ))}
-
-        <div className="add-contractor-row">
+        <div className="add-contractor-row add-contractor-top">
           <div className="add-milestone-row">
             <input
               className="add-task-input"
@@ -261,6 +239,27 @@ export default function ContractorsView({
             </button>
           </div>
         </div>
+        {contractors.length === 0 && (
+          <div className="empty-state">No contractors tracked yet.</div>
+        )}
+        {contractors.map((c) => (
+          <div
+            className="contractor-row contractor-row-clickable"
+            key={c.id}
+            onClick={() => setEditingId(c.id)}
+            title="Click to edit"
+          >
+            <div className="contractor-info">
+              <div className="contractor-name">{c.name}</div>
+              {c.role && <div className="contractor-role">{c.role}</div>}
+            </div>
+            <div className="contractor-date">{dateRangeLabel(c)}</div>
+            {isEndingSoon(c) && (
+              <span className="milestone-flag">⚠ Contract ends within 2 weeks</span>
+            )}
+            <span className="contractor-edit-hint">Edit</span>
+          </div>
+        ))}
       </div>
 
       {editing && (

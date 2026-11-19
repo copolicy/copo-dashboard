@@ -583,6 +583,7 @@ export default function Home() {
     staleHours >= VERY_STALE_AFTER_HOURS ? "very-stale" : staleHours >= STALE_AFTER_HOURS ? "stale" : "";
 
   const cardListProps = {
+    onReorder: handleReorder,
     expandedIds,
     focusedId,
     onToggleExpand: toggleExpand,

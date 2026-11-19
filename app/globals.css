@@ -13,9 +13,9 @@
   --border: #e8e8e2;
   --border2: #d0d0c8;
   --active-bg: #f0efe8;
-  --accent: #2d6a4f;
-  --accent-light: #e8f4ee;
-  --accent-text: #1a4a35;
+  --accent: #3667f6;
+  --accent-light: #ebf0fe;
+  --accent-text: #1f3f9e;
   --warn: #b85c00;
   --warn-light: #fef3e8;
   --warn-text: #7a3d00;
@@ -141,10 +141,10 @@ button,
   flex-shrink: 0;
 }
 .dot-active {
-  background: #2d6a4f;
+  background: var(--accent);
 }
 .dot-retainer {
-  background: #1a5f8a;
+  background: var(--accent-text);
 }
 .dot-wrap {
   background: #c8c8c0;
@@ -2331,4 +2331,109 @@ button,
 }
 .date-picker-popover .rdp-today .rdp-day_button {
   font-weight: 800;
+}
+
+/* ---- Manrope is always all caps ---- */
+button,
+.btn,
+.suggested-name {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+/* The calendar grid stays readable: day numbers and month nav are buttons too. */
+.date-picker-popover .rdp-day_button {
+  letter-spacing: 0;
+}
+
+/* ---- sidebar: all Manrope, all caps ---- */
+.sidebar,
+.sidebar * {
+  font-family: var(--font-head), "Helvetica Neue", sans-serif;
+}
+.sidebar .nav-item {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.sidebar .nav-item.active {
+  color: var(--accent-text);
+  background: var(--accent-light);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.sidebar .logo-text {
+  color: var(--accent);
+}
+
+/* ---- blue accents ---- */
+.week-label,
+.section-title {
+  color: var(--accent);
+}
+.stat-n {
+  color: var(--accent);
+}
+
+/* ---- drag cards to reorder ---- */
+.pc-drag-wrap {
+  position: relative;
+}
+.pc-grip {
+  position: absolute;
+  left: -20px;
+  top: 16px;
+  width: 16px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink3);
+  fill: currentColor;
+  cursor: grab;
+  opacity: 0.35;
+  border-radius: 4px;
+  transition: opacity 0.1s, color 0.1s;
+}
+.pc-drag-wrap:hover .pc-grip,
+.pc-grip:focus-visible {
+  opacity: 1;
+}
+.pc-grip:hover {
+  color: var(--accent);
+}
+.pc-grip:active {
+  cursor: grabbing;
+}
+.pc-drag-wrap.dragging {
+  opacity: 0.4;
+}
+.pc-drag-wrap.drop-above::before,
+.pc-drag-wrap.drop-below::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.pc-drag-wrap.drop-above::before {
+  top: -8px;
+}
+.pc-drag-wrap.drop-below::after {
+  bottom: 4px;
+}
+@media (max-width: 640px) {
+  .pc-grip {
+    left: auto;
+    right: 8px;
+    top: 8px;
+  }
+}
+
+/* contractor form sits above the list */
+.add-contractor-top {
+  margin: 0 0 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DayPicker } from "react-day-picker";
 
@@ -65,6 +65,26 @@ export default function DatePicker({
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
+
+  // Keep the calendar on screen: open upward when there isn't room below
+  // (e.g. a field near the bottom of the page) and nudge it in from the edges.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const trigger = triggerRef.current?.getBoundingClientRect();
+    const pop = popoverRef.current?.getBoundingClientRect();
+    if (!trigger || !pop) return;
+    const margin = 8;
+    let top = trigger.bottom + 4;
+    if (top + pop.height > window.innerHeight - margin) {
+      const above = trigger.top - 4 - pop.height;
+      top = above >= margin ? above : Math.max(margin, window.innerHeight - margin - pop.height);
+    }
+    const left = Math.min(
+      Math.max(margin, trigger.left),
+      window.innerWidth - margin - pop.width
+    );
+    if (top !== coords.top || left !== coords.left) setCoords({ top, left });
+  }, [open, coords.top, coords.left]);
 
   function openPicker() {
     const rect = triggerRef.current?.getBoundingClientRect();
