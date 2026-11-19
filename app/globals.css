@@ -2363,7 +2363,7 @@ button,
 /* ---- blue accents ---- */
 .week-label,
 .section-title {
-  color: var(--accent);
+  color: var(--ink);
 }
 .stat-n {
   color: var(--accent);
