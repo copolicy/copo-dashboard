@@ -808,6 +808,16 @@ export default function Home() {
             />
           </>
         )}
+
+        <footer className="brand-footer">
+          <div>
+            © Company Policy, {new Date().getFullYear()}
+            <span className="brand-footer-mark" aria-hidden="true">
+              ©OMPANY POLICY
+            </span>
+          </div>
+          <a href="mailto:hello@companypolicy.studio">hello@companypolicy.studio</a>
+        </footer>
       </main>
 
       <IntakeModal

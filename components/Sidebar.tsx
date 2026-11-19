@@ -94,7 +94,7 @@ export default function Sidebar({
   return (
     <aside className="sidebar">
       <div className="logo">
-        <div className="logo-text">Company Policy</div>
+        <div className="logo-text">©OMPANY POLICY</div>
         <div className="logo-sub">State of Affairs</div>
       </div>
 
