@@ -2366,7 +2366,7 @@ button,
   color: var(--ink);
 }
 .stat-n {
-  color: var(--accent);
+  color: var(--ink);
 }
 
 /* ---- drag cards to reorder ---- */
