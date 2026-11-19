@@ -13,7 +13,7 @@ import CalendarView from "@/components/CalendarView";
 import AddClientModal from "@/components/AddClientModal";
 import IntakeModal from "@/components/IntakeModal";
 import ClientPage from "@/components/ClientPage";
-import PersonView from "@/components/PersonView";
+import PersonView, { assignablePeople } from "@/components/PersonView";
 import UpcomingView from "@/components/UpcomingView";
 import { plainText } from "@/components/LinkedText";
 import SuggestedClients from "@/components/SuggestedClients";
@@ -549,6 +549,11 @@ export default function Home() {
     window.scrollTo({ top: 0 });
   }
 
+  const assignable = useMemo(
+    () => assignablePeople(projects, contractors.map((c) => c.name)),
+    [projects, contractors]
+  );
+
   const stats = useMemo(() => {
     const activeClients = projects.filter(
       (p) => p.section === "Active clients"
@@ -693,7 +698,9 @@ export default function Home() {
           <UpcomingView
             projects={projects}
             onToggleTask={handleToggleTask}
+            onEditTask={handleEditTask}
             onSelectProject={selectProject}
+            people={assignable}
           />
         ) : view.type === "intel" ? (
           <KeyIntel />
@@ -712,6 +719,7 @@ export default function Home() {
             onToggleTask={handleToggleTask}
             onEditTask={handleEditTask}
             onSelectProject={selectProject}
+            people={assignable}
           />
         ) : view.type === "calendar" ? (
           <CalendarView
@@ -810,12 +818,7 @@ export default function Home() {
         )}
 
         <footer className="brand-footer">
-          <div>
-            © Company Policy, {new Date().getFullYear()}
-            <span className="brand-footer-mark" aria-hidden="true">
-              ©OMPANY POLICY
-            </span>
-          </div>
+          <span>© Company Policy, {new Date().getFullYear()}</span>
           <a href="mailto:hello@companypolicy.studio">hello@companypolicy.studio</a>
         </footer>
       </main>

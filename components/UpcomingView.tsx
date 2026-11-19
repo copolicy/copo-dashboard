@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import LinkedText from "@/components/LinkedText";
+import OwnerPicker from "@/components/OwnerPicker";
 import {
   BUCKETS,
   DEFAULT_OWNER,
@@ -10,6 +11,7 @@ import {
   mondayOf,
   ownerOf,
   parseIso,
+  retitleForOwner,
   startOfToday,
   type Bucket,
 } from "@/components/PersonView";
@@ -67,11 +69,15 @@ function bucketOf(item: Item): Bucket | null {
 export default function UpcomingView({
   projects,
   onToggleTask,
+  onEditTask,
   onSelectProject,
+  people,
 }: {
   projects: Project[];
   onToggleTask: (projectId: string, taskId: string, done: boolean) => void;
+  onEditTask: (projectId: string, taskId: string, title: string) => void;
   onSelectProject: (section: string, projectId: string) => void;
+  people: string[];
 }) {
   const [owner, setOwner] = useState<string>("all");
   const [clientId, setClientId] = useState<string>("all");
@@ -194,7 +200,13 @@ export default function UpcomingView({
           </div>
           <div className="person-task-meta">
             {clientChip}
-            <span className="upcoming-owner">{item.owner}</span>
+            <OwnerPicker
+              owner={item.owner}
+              people={people}
+              onChange={(next) =>
+                onEditTask(project.id, task.id, retitleForOwner(task.title, next))
+              }
+            />
             {task.due_date ? (
               <span className={`person-due ${isOverdue ? "overdue" : ""}`}>
                 Due {formatDue(task.due_date)}

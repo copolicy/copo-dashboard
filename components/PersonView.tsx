@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import LinkedText from "@/components/LinkedText";
+import OwnerPicker from "@/components/OwnerPicker";
 import { PencilIcon } from "@/components/ProjectCard";
 import { fetchRecentMeetings } from "@/lib/data";
 import type { ClientMeeting, Project, Task } from "@/lib/types";
@@ -25,6 +26,40 @@ export function taskOwner(title: string): string | null {
 // Who a task is for, counting unowned tasks as the default owner's.
 export function ownerOf(title: string): string {
   return taskOwner(title) ?? DEFAULT_OWNER;
+}
+
+// Rewrites a title so it belongs to someone else. "Lydia to work on X"
+// handed to Sharona becomes "Sharona: work on X"; handed to the default
+// owner it loses its prefix ("Work on X").
+export function retitleForOwner(title: string, person: string): string {
+  const current = taskOwner(title);
+  let rest = title.trim();
+  if (current) {
+    rest = rest.replace(new RegExp(`^${current}(?::\\s*|\\s+to\\s+)`), "").trim();
+  }
+  if (person === DEFAULT_OWNER) return rest.charAt(0).toUpperCase() + rest.slice(1);
+  return `${person}: ${rest}`;
+}
+
+// Everyone a task can be handed to: the sidebar people, then anyone
+// else who already has tasks or is on the contractors list.
+export function assignablePeople(projects: Project[], extra: string[] = []): string[] {
+  const names = new Set<string>(PEOPLE);
+  for (const p of projects) {
+    if (p.section === "Archived") continue;
+    for (const t of p.tasks) {
+      const o = taskOwner(t.title);
+      if (o) names.add(o);
+    }
+  }
+  for (const e of extra) {
+    const first = e.trim().split(/\s+/)[0];
+    if (first) names.add(first.charAt(0).toUpperCase() + first.slice(1));
+  }
+  const rest = Array.from(names)
+    .filter((n) => !PEOPLE.includes(n))
+    .sort();
+  return [...PEOPLE, ...rest];
 }
 
 // Drops the "Adam: " prefix when showing a task on Adam's own page.
@@ -67,6 +102,7 @@ function PersonTask({
   task,
   project,
   person,
+  people,
   onToggle,
   onEdit,
   onSelectProject,
@@ -74,6 +110,7 @@ function PersonTask({
   task: Task;
   project: Project;
   person: string;
+  people: string[];
   onToggle: () => void;
   onEdit: (title: string) => void;
   onSelectProject: () => void;
@@ -129,6 +166,11 @@ function PersonTask({
           <button className="person-client" onClick={onSelectProject}>
             {project.name}
           </button>
+          <OwnerPicker
+            owner={person}
+            people={people}
+            onChange={(next) => onEdit(retitleForOwner(task.title, next))}
+          />
           {task.due_date && (
             <span className={`person-due ${overdue ? "overdue" : ""}`}>
               Due {formatDue(task.due_date)}
@@ -174,9 +216,11 @@ export default function PersonView({
   onToggleTask,
   onEditTask,
   onSelectProject,
+  people,
 }: {
   person: string;
   projects: Project[];
+  people: string[];
   onToggleTask: (projectId: string, taskId: string, done: boolean) => void;
   onEditTask: (projectId: string, taskId: string, title: string) => void;
   onSelectProject: (section: string, projectId: string) => void;
@@ -230,6 +274,7 @@ export default function PersonView({
         task={task}
         project={project}
         person={person}
+        people={people}
         onToggle={() => onToggleTask(project.id, task.id, !task.done)}
         onEdit={(title) => onEditTask(project.id, task.id, title)}
         onSelectProject={() => onSelectProject(project.section, project.id)}
