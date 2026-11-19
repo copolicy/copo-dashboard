@@ -2742,8 +2742,6 @@ button,
 .upcoming-pill {
   border-radius: 0;
 }
-@media (max-width: 640px) {
-  }
 
 /* stat boxes: keep the overdue one tinted */
 .stat.stat-alert {
@@ -2860,4 +2858,33 @@ button,
 }
 .brand-footer {
   border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* Upcoming work filters: blue, not black */
+.upcoming-pill {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: transparent;
+}
+.upcoming-pill:hover {
+  background: var(--accent-light);
+  color: var(--accent-text);
+}
+.upcoming-pill.active,
+.upcoming-pill.active:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.upcoming-pill .person-count {
+  color: inherit;
+  opacity: 0.6;
+}
+.upcoming-pill.active .person-count {
+  color: #fff;
+  opacity: 0.75;
+}
+.upcoming-select {
+  border-color: var(--accent);
+  color: var(--accent);
 }
