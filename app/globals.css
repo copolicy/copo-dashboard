@@ -4,6 +4,39 @@
   padding: 0;
 }
 
+/* Studio fonts, self-hosted in public/fonts.
+   Zichtbaar: every button. Kleisch LL: all serif text.
+   Kleisch only comes in Light, so the one file covers every weight
+   (no fake bold). Zichtbaar Demibold covers 500 and up. */
+@font-face {
+  font-family: "Zichtbaar";
+  src: url("/fonts/Zichtbaar-Regular.otf") format("opentype");
+  font-weight: 100 450;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zichtbaar";
+  src: url("/fonts/Zichtbaar-Demibold.otf") format("opentype");
+  font-weight: 451 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Kleisch LL";
+  src: url("/fonts/KleischLL-Light.otf") format("opentype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Kleisch LL";
+  src: url("/fonts/KleischLL-LightItalic.otf") format("opentype");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root {
   --ink: #1a1a18;
   --ink2: #5a5a56;
@@ -27,7 +60,8 @@
   --blue-text: #0d3d5c;
   --radius: 10px;
   --gap: 16px;
-  --font-text: "Frank Ruhl Libre";
+  --font-text: "Kleisch LL";
+  --font-button: "Zichtbaar";
   --font-head: "Manrope";
 }
 
@@ -52,10 +86,10 @@ select {
   color: inherit;
 }
 
-/* Every button, and links styled as buttons, use Manrope. */
+/* Every button, and links styled as buttons, use Zichtbaar. */
 button,
 .btn {
-  font-family: var(--font-head), "Helvetica Neue", sans-serif;
+  font-family: var(--font-button), "Helvetica Neue", sans-serif;
 }
 
 .shell {
@@ -2749,4 +2783,13 @@ button,
   font-size: 12px;
   color: var(--ink3);
   margin-top: 8px;
+}
+
+/* Buttons are always Zichtbaar, even where a component sets its own font. */
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"] {
+  font-family: var(--font-button), "Helvetica Neue", sans-serif !important;
 }
