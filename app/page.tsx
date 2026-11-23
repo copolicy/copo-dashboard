@@ -86,18 +86,44 @@ export default function Home() {
   const [closures, setClosures] = useState<StudioClosure[]>([]);
   const [suggestions, setSuggestions] = useState<SuggestedClient[]>([]);
   const [now, setNow] = useState(() => Date.now());
+  const [refreshing, setRefreshing] = useState(false);
+  // Bumped on refresh so views that load their own data (key intel, client
+  // pages, person pages) remount and fetch again.
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  function loadData() {
+    return Promise.all([
+      fetchProjects(),
+      fetchContractors(),
+      fetchStudioClosures(),
+      fetchSuggestedClients(),
+    ]).then(([p, c, closuresData, suggestionsData]) => {
+      setProjects(p);
+      setContractors(c);
+      setClosures(closuresData);
+      setSuggestions(suggestionsData);
+      setSyncError(null);
+    });
+  }
+
+  async function handleRefresh() {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await loadData();
+      setRefreshKey((k) => k + 1);
+      setNow(Date.now());
+    } catch (e) {
+      setSyncError(String((e as Error).message ?? e));
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   useEffect(() => {
-    Promise.all([fetchProjects(), fetchContractors()])
-      .then(([p, c]) => {
-        setProjects(p);
-        setContractors(c);
-      })
+    loadData()
       .catch((e) => setSyncError(String(e.message ?? e)))
       .finally(() => setLoading(false));
-
-    fetchStudioClosures().then(setClosures);
-    fetchSuggestedClients().then(setSuggestions);
 
     // Keep the "last updated" age current if the tab stays open.
     const tick = setInterval(() => setNow(Date.now()), 5 * 60 * 1000);
@@ -641,6 +667,7 @@ export default function Home() {
       />
 
       <main className="main">
+        <div className="last-updated-row">
         {lastUpdated && (
           <div
             className={`last-updated ${staleness}`}
@@ -661,6 +688,19 @@ export default function Home() {
             })}
           </div>
         )}
+          <button
+            type="button"
+            className="refresh-btn"
+            onClick={handleRefresh}
+            disabled={refreshing || loading}
+            title="Reload the latest data from the database"
+          >
+            <span className={`refresh-icon${refreshing ? " spinning" : ""}`} aria-hidden="true">
+              ↻
+            </span>
+            {refreshing ? "Refreshing" : "Refresh"}
+          </button>
+        </div>
 
         {syncError && (
           <div
@@ -703,7 +743,7 @@ export default function Home() {
             people={assignable}
           />
         ) : view.type === "intel" ? (
-          <KeyIntel />
+          <KeyIntel key={refreshKey} />
         ) : view.type === "contractors" ? (
           <ContractorsView
             contractors={contractors}
@@ -713,7 +753,7 @@ export default function Home() {
           />
         ) : view.type === "person" ? (
           <PersonView
-            key={view.person}
+            key={`${view.person}-${refreshKey}`}
             person={view.person}
             projects={projects}
             onToggleTask={handleToggleTask}
@@ -736,7 +776,7 @@ export default function Home() {
             if (!project) return <div className="empty-state">That client was removed.</div>;
             return (
               <ClientPage
-                key={project.id}
+                key={`${project.id}-${refreshKey}`}
                 project={project}
                 cardListProps={cardListProps}
                 onNotesSaved={(notes, savedAt) =>
