@@ -5,6 +5,7 @@ import ProjectCardList from "@/components/ProjectCardList";
 import LinkedText, { shortLinkLabel } from "@/components/LinkedText";
 import { normalizeUrl } from "@/components/WorkspaceLink";
 import { formatMeetingTime } from "@/components/ProjectCard";
+import { ClientDiscussionPanel } from "@/components/DiscussionPoints";
 import {
   addClientLink,
   deleteClientLink,
@@ -91,6 +92,11 @@ export default function ClientPage({
             expandedIds={new Set([project.id])}
             focusedId={null}
             onToggleExpand={() => {}}
+          />
+
+          <ClientDiscussionPanel
+            projectId={project.id}
+            onMakeTask={(title) => cardListProps.onAddTask(project.id, "this", title, null)}
           />
 
           <NotesPanel project={project} onSaved={onNotesSaved} />

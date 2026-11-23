@@ -174,3 +174,13 @@ export interface ClientDetail {
   meetings: ClientMeeting[];
   insights: ClientInsight[];
 }
+
+// Something to cover with Adam on a client, before it is a task.
+export interface DiscussionPoint {
+  id: string;
+  project_id: string;
+  text: string;
+  done: boolean;
+  done_at: string | null;
+  created_at: string;
+}

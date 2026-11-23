@@ -6,6 +6,7 @@ import OwnerPicker from "@/components/OwnerPicker";
 import { PencilIcon } from "@/components/ProjectCard";
 import { fetchRecentMeetings } from "@/lib/data";
 import type { ClientMeeting, Project, Task } from "@/lib/types";
+import { AdamAgendaPanel } from "@/components/DiscussionPoints";
 
 // Team members who get their own to-do page in the sidebar.
 export const PEOPLE = ["Nicole", "Adam"];
@@ -317,6 +318,9 @@ export default function PersonView({
 
       <div className="client-grid">
         <div className="client-main">
+          {person === "Adam" && (
+            <AdamAgendaPanel projects={projects} onSelectProject={onSelectProject} />
+          )}
           <section className="client-panel">
             {open.length === 0 && (
               <div className="empty-state">

@@ -2793,3 +2793,60 @@ input[type="button"],
 input[type="submit"] {
   font-family: var(--font-button), "Helvetica Neue", sans-serif !important;
 }
+
+/* To cover with Adam */
+.discussion-panel .task-list {
+  margin-bottom: 4px;
+}
+.discussion-make-task {
+  opacity: 0;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 1px 8px;
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+.task-row:hover .discussion-make-task,
+.discussion-make-task:focus-visible {
+  opacity: 1;
+}
+.discussion-make-task:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.discussion-group + .discussion-group {
+  margin-top: 14px;
+}
+.discussion-group-head {
+  background: none;
+  border: none;
+  padding: 0 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink3);
+  cursor: pointer;
+}
+.discussion-group-head:hover {
+  color: var(--accent);
+}
+.discussion-client {
+  background: none;
+  border: none;
+  padding: 0 6px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink3);
+  cursor: pointer;
+}
+@media (hover: none) {
+  .discussion-make-task {
+    opacity: 1;
+  }
+}

@@ -170,3 +170,16 @@ alter table client_insights add column if not exists retired boolean not null de
 alter table key_intel add column if not exists retired boolean not null default false;
 create unique index if not exists client_insights_project_slot on client_insights (project_id, sort_order);
 create unique index if not exists key_intel_slot on key_intel (sort_order);
+
+-- Client pages: things Nicole wants to cover with Adam that don't have a task yet.
+-- Owned by Nicole. The sync routine never writes or deletes these.
+create table if not exists discussion_points (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references projects(id) on delete cascade,
+  text text not null,
+  done boolean not null default false,
+  done_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists discussion_points_project_idx on discussion_points(project_id);
+alter table discussion_points disable row level security;

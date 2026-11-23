@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import type {
+  DiscussionPoint,
   Blocker,
   ClientDetail,
   ClientLink,
@@ -496,4 +497,42 @@ export async function fetchStudioClosures(): Promise<StudioClosure[]> {
     .order("start_date", { ascending: true });
   if (error) return [];
   return (data ?? []) as StudioClosure[];
+}
+
+// Things to cover with Adam, per client. Pass a project id for one client,
+// or leave it out for every client.
+export async function fetchDiscussionPoints(projectId?: string): Promise<DiscussionPoint[]> {
+  let q = supabase.from("discussion_points").select("*").order("created_at", { ascending: true });
+  if (projectId) q = q.eq("project_id", projectId);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as DiscussionPoint[];
+}
+
+export async function addDiscussionPoint(projectId: string, text: string) {
+  const { data, error } = await supabase
+    .from("discussion_points")
+    .insert({ project_id: projectId, text })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as DiscussionPoint;
+}
+
+export async function setDiscussionPointDone(id: string, done: boolean) {
+  const { error } = await supabase
+    .from("discussion_points")
+    .update({ done, done_at: done ? new Date().toISOString() : null })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateDiscussionPointText(id: string, text: string) {
+  const { error } = await supabase.from("discussion_points").update({ text }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteDiscussionPoint(id: string) {
+  const { error } = await supabase.from("discussion_points").delete().eq("id", id);
+  if (error) throw error;
 }
