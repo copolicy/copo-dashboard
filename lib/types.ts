@@ -112,6 +112,8 @@ export interface Contractor {
   start_date: string | null;
   end_date: string | null;
   full_time: boolean;
+  // Set by hand. Contractors whose end date has passed also count as archived.
+  archived: boolean;
   created_at: string;
 }
 

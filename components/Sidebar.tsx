@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Contractor, Project, Status } from "@/lib/types";
 import { PEOPLE, bucketFor, ownerOf } from "@/components/PersonView";
+import { isContractorArchived } from "@/components/ContractorsView";
 
 export type View =
   | { type: "overview" }
@@ -82,7 +83,9 @@ export default function Sidebar({
     ids.splice(at, 0, dragId);
     onReorder(section, ids);
   }
-  const endingSoonCount = contractors.filter(contractEndingSoon).length;
+  const endingSoonCount = contractors.filter(
+    (c) => !isContractorArchived(c) && contractEndingSoon(c)
+  ).length;
   const overdueCount = projects
     .filter((p) => p.section !== ARCHIVED_SECTION)
     .reduce(

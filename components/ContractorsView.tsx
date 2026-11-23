@@ -21,6 +21,18 @@ function isEndingSoon(contractor: Contractor) {
   return daysOut >= 0 && daysOut <= CONTRACT_FLAG_DAYS;
 }
 
+function endDatePassed(c: Contractor) {
+  if (c.full_time || !c.end_date) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(c.end_date + "T00:00:00").getTime() < today.getTime();
+}
+
+// Finished with the studio: archived by hand, or the contract end date has passed.
+export function isContractorArchived(c: Contractor) {
+  return !!c.archived || endDatePassed(c);
+}
+
 function dateRangeLabel(c: Contractor) {
   const start = c.start_date ? formatDate(c.start_date) : null;
   if (c.full_time) {
@@ -45,13 +57,17 @@ function EditContractorModal({
   contractor,
   onClose,
   onSave,
+  onArchive,
   onDelete,
 }: {
   contractor: Contractor;
   onClose: () => void;
   onSave: (input: ContractorInput) => void;
+  onArchive: (archived: boolean) => void;
   onDelete: () => void;
 }) {
+  const archived = isContractorArchived(contractor);
+  const archivedByDate = archived && !contractor.archived;
   const [name, setName] = useState(contractor.name);
   const [role, setRole] = useState(contractor.role ?? "");
   const [startDate, setStartDate] = useState(contractor.start_date ?? "");
@@ -122,6 +138,12 @@ function EditContractorModal({
           )}
         </div>
         {error && <div className="intake-error">{error}</div>}
+        {archivedByDate && (
+          <div className="contractor-archive-note">
+            In the archive because the end date has passed. Move the end date later or tick
+            Full-time to bring them back.
+          </div>
+        )}
         <div className="modal-actions contractor-modal-actions">
           <button
             className="btn btn-danger-quiet"
@@ -131,6 +153,11 @@ function EditContractorModal({
           >
             Remove
           </button>
+          {!archivedByDate && (
+            <button className="btn" onClick={() => onArchive(!contractor.archived)}>
+              {contractor.archived ? "Move back to current" : "Archive"}
+            </button>
+          )}
           <span style={{ flex: 1 }} />
           <button className="btn" onClick={onClose}>
             Cancel
@@ -145,10 +172,39 @@ function EditContractorModal({
   );
 }
 
+function ContractorRow({
+  contractor: c,
+  archived = false,
+  onEdit,
+}: {
+  contractor: Contractor;
+  archived?: boolean;
+  onEdit: () => void;
+}) {
+  return (
+    <div
+      className={`contractor-row contractor-row-clickable${archived ? " archived" : ""}`}
+      onClick={onEdit}
+      title="Click to edit"
+    >
+      <div className="contractor-info">
+        <div className="contractor-name">{c.name}</div>
+        {c.role && <div className="contractor-role">{c.role}</div>}
+      </div>
+      <div className="contractor-date">{dateRangeLabel(c)}</div>
+      {!archived && isEndingSoon(c) && (
+        <span className="milestone-flag">⚠ Contract ends within 2 weeks</span>
+      )}
+      <span className="contractor-edit-hint">Edit</span>
+    </div>
+  );
+}
+
 export default function ContractorsView({
   contractors,
   onAdd,
   onUpdate,
+  onArchive,
   onDelete,
 }: {
   contractors: Contractor[];
@@ -160,9 +216,13 @@ export default function ContractorsView({
     fullTime: boolean;
   }) => void;
   onUpdate: (id: string, input: ContractorInput) => void;
+  onArchive: (id: string, archived: boolean) => void;
   onDelete: (id: string) => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showArchive, setShowArchive] = useState(false);
+  const current = contractors.filter((c) => !isContractorArchived(c));
+  const archivedList = contractors.filter(isContractorArchived);
   const editing = contractors.find((c) => c.id === editingId) ?? null;
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
@@ -239,28 +299,37 @@ export default function ContractorsView({
             </button>
           </div>
         </div>
-        {contractors.length === 0 && (
-          <div className="empty-state">No contractors tracked yet.</div>
-        )}
-        {contractors.map((c) => (
-          <div
-            className="contractor-row contractor-row-clickable"
-            key={c.id}
-            onClick={() => setEditingId(c.id)}
-            title="Click to edit"
-          >
-            <div className="contractor-info">
-              <div className="contractor-name">{c.name}</div>
-              {c.role && <div className="contractor-role">{c.role}</div>}
-            </div>
-            <div className="contractor-date">{dateRangeLabel(c)}</div>
-            {isEndingSoon(c) && (
-              <span className="milestone-flag">⚠ Contract ends within 2 weeks</span>
-            )}
-            <span className="contractor-edit-hint">Edit</span>
+        {current.length === 0 && (
+          <div className="empty-state">
+            {contractors.length === 0 ? "No contractors tracked yet." : "No current contractors."}
           </div>
+        )}
+        {current.map((c) => (
+          <ContractorRow key={c.id} contractor={c} onEdit={() => setEditingId(c.id)} />
         ))}
       </div>
+
+      {archivedList.length > 0 && (
+        <div className="intel-section contractor-archive">
+          <button
+            type="button"
+            className="contractor-archive-toggle"
+            onClick={() => setShowArchive((v) => !v)}
+            aria-expanded={showArchive}
+          >
+            {showArchive ? "▾" : "▸"} Archive ({archivedList.length})
+          </button>
+          {showArchive &&
+            archivedList.map((c) => (
+              <ContractorRow
+                key={c.id}
+                contractor={c}
+                archived
+                onEdit={() => setEditingId(c.id)}
+              />
+            ))}
+        </div>
+      )}
 
       {editing && (
         <EditContractorModal
@@ -269,6 +338,10 @@ export default function ContractorsView({
           onClose={() => setEditingId(null)}
           onSave={(input) => {
             onUpdate(editing.id, input);
+            setEditingId(null);
+          }}
+          onArchive={(archived) => {
+            onArchive(editing.id, archived);
             setEditingId(null);
           }}
           onDelete={() => {

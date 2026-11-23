@@ -8,7 +8,7 @@ import Sidebar, {
 } from "@/components/Sidebar";
 import ProjectCardList from "@/components/ProjectCardList";
 import KeyIntel from "@/components/KeyIntel";
-import ContractorsView from "@/components/ContractorsView";
+import ContractorsView, { isContractorArchived } from "@/components/ContractorsView";
 import CalendarView from "@/components/CalendarView";
 import AddClientModal from "@/components/AddClientModal";
 import IntakeModal from "@/components/IntakeModal";
@@ -46,6 +46,7 @@ import {
   setTaskWeek,
   setWorkspaceUrl,
   updateContractor,
+  setContractorArchived,
   updateBlockerText,
   updateTaskTitle,
 } from "@/lib/data";
@@ -543,6 +544,15 @@ export default function Home() {
     }
   }
 
+  async function handleArchiveContractor(id: string, archived: boolean) {
+    setContractors((prev) => prev.map((c) => (c.id === id ? { ...c, archived } : c)));
+    try {
+      await setContractorArchived(id, archived);
+    } catch (e) {
+      setSyncError(String((e as Error).message ?? e));
+    }
+  }
+
   async function handleDeleteContractor(id: string) {
     setContractors((prev) => prev.filter((c) => c.id !== id));
     try {
@@ -576,7 +586,11 @@ export default function Home() {
   }
 
   const assignable = useMemo(
-    () => assignablePeople(projects, contractors.map((c) => c.name)),
+    () =>
+      assignablePeople(
+        projects,
+        contractors.filter((c) => !isContractorArchived(c)).map((c) => c.name)
+      ),
     [projects, contractors]
   );
 
@@ -749,6 +763,7 @@ export default function Home() {
             contractors={contractors}
             onAdd={handleAddContractor}
             onUpdate={handleUpdateContractor}
+            onArchive={handleArchiveContractor}
             onDelete={handleDeleteContractor}
           />
         ) : view.type === "person" ? (
@@ -857,10 +872,6 @@ export default function Home() {
           </>
         )}
 
-        <footer className="brand-footer">
-          <span>© Company Policy, {new Date().getFullYear()}</span>
-          <a href="mailto:hello@companypolicy.studio">hello@companypolicy.studio</a>
-        </footer>
       </main>
 
       <IntakeModal

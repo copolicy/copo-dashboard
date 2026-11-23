@@ -66,6 +66,9 @@ alter table contractors add column start_date date;
 alter table contractors add column full_time boolean not null default false;
 alter table contractors alter column end_date drop not null;
 
+-- Contractors: archive for people who have finished working with the studio
+alter table contractors add column if not exists archived boolean not null default false;
+
 -- Single-row storage for Nicole's connected Google Calendar OAuth tokens.
 -- One personal-use dashboard, one Google account connected -- no per-user table needed.
 create table google_calendar_tokens (

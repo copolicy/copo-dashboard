@@ -315,6 +315,15 @@ export async function updateContractor(
   return data as Contractor;
 }
 
+export async function setContractorArchived(contractorId: string, archived: boolean) {
+  const { error } = await supabase
+    .from("contractors")
+    .update({ archived })
+    .eq("id", contractorId);
+
+  if (error) throw error;
+}
+
 export async function deleteContractor(contractorId: string) {
   const { error } = await supabase
     .from("contractors")
