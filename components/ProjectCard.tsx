@@ -568,9 +568,11 @@ export default function ProjectCard({
   onAddMilestone,
   onToggleMilestoneCompleted,
   onDeleteMilestone,
+  scrollOnExpand = true,
 }: {
   project: Project;
   expanded: boolean;
+  scrollOnExpand?: boolean;
   onToggleExpand: () => void;
   onToggleTask: (taskId: string, done: boolean) => void;
   onDeleteTask: (taskId: string) => void;
@@ -593,10 +595,10 @@ export default function ProjectCard({
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (expanded) {
+    if (expanded && scrollOnExpand) {
       cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [expanded]);
+  }, [expanded, scrollOnExpand]);
 
   const byDue = (a: Task, b: Task) =>
     (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999");

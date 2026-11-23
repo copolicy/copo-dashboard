@@ -86,17 +86,18 @@ export default function ClientPage({
 
       <div className="client-grid">
         <div className="client-main">
+          <ClientDiscussionPanel
+            projectId={project.id}
+            onMakeTask={(title) => cardListProps.onAddTask(project.id, "this", title, null)}
+          />
+
           <ProjectCardList
             {...cardListProps}
             projects={[project]}
             expandedIds={new Set([project.id])}
             focusedId={null}
             onToggleExpand={() => {}}
-          />
-
-          <ClientDiscussionPanel
-            projectId={project.id}
-            onMakeTask={(title) => cardListProps.onAddTask(project.id, "this", title, null)}
+            scrollOnExpand={false}
           />
 
           <NotesPanel project={project} onSaved={onNotesSaved} />

@@ -34,8 +34,11 @@ export default function ProjectCardList({
   onToggleMilestoneCompleted,
   onDeleteMilestone,
   onReorder,
+  scrollOnExpand = true,
 }: {
   title?: string;
+  // Off on a client page, so the panels above the card stay in view.
+  scrollOnExpand?: boolean;
   projects: Project[];
   expandedIds: Set<string>;
   focusedId: string | null;
@@ -164,6 +167,7 @@ export default function ProjectCardList({
         <ProjectCard
           project={project}
           expanded={expandedIds.has(project.id) || focusedId === project.id}
+          scrollOnExpand={scrollOnExpand}
           onToggleExpand={() => onToggleExpand(project.id)}
           onToggleTask={(taskId, done) => onToggleTask(project.id, taskId, done)}
           onDeleteTask={(taskId) => onDeleteTask(project.id, taskId)}
