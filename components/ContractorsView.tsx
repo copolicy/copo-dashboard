@@ -28,9 +28,10 @@ function endDatePassed(c: Contractor) {
   return new Date(c.end_date + "T00:00:00").getTime() < today.getTime();
 }
 
-// Finished with the studio: archived by hand, or the contract end date has passed.
+// Finished with the studio. Archiving is by hand only: some contractors keep
+// working past the end date on file.
 export function isContractorArchived(c: Contractor) {
-  return !!c.archived || endDatePassed(c);
+  return !!c.archived;
 }
 
 function dateRangeLabel(c: Contractor) {
@@ -66,8 +67,7 @@ function EditContractorModal({
   onArchive: (archived: boolean) => void;
   onDelete: () => void;
 }) {
-  const archived = isContractorArchived(contractor);
-  const archivedByDate = archived && !contractor.archived;
+
   const [name, setName] = useState(contractor.name);
   const [role, setRole] = useState(contractor.role ?? "");
   const [startDate, setStartDate] = useState(contractor.start_date ?? "");
@@ -138,10 +138,9 @@ function EditContractorModal({
           )}
         </div>
         {error && <div className="intake-error">{error}</div>}
-        {archivedByDate && (
+        {!contractor.archived && endDatePassed(contractor) && (
           <div className="contractor-archive-note">
-            In the archive because the end date has passed. Move the end date later or tick
-            Full-time to bring them back.
+            The end date has passed. Archive them if they have finished working with the studio.
           </div>
         )}
         <div className="modal-actions contractor-modal-actions">
@@ -153,11 +152,9 @@ function EditContractorModal({
           >
             Remove
           </button>
-          {!archivedByDate && (
-            <button className="btn" onClick={() => onArchive(!contractor.archived)}>
-              {contractor.archived ? "Move back to current" : "Archive"}
-            </button>
-          )}
+          <button className="btn" onClick={() => onArchive(!contractor.archived)}>
+            {contractor.archived ? "Move back to current" : "Archive"}
+          </button>
           <span style={{ flex: 1 }} />
           <button className="btn" onClick={onClose}>
             Cancel
@@ -194,6 +191,9 @@ function ContractorRow({
       <div className="contractor-date">{dateRangeLabel(c)}</div>
       {!archived && isEndingSoon(c) && (
         <span className="milestone-flag">⚠ Contract ends within 2 weeks</span>
+      )}
+      {!archived && endDatePassed(c) && (
+        <span className="milestone-flag">End date passed. Archive?</span>
       )}
       <span className="contractor-edit-hint">Edit</span>
     </div>
