@@ -2785,12 +2785,18 @@ button,
   margin-top: 8px;
 }
 
-/* Buttons are always Zichtbaar, even where a component sets its own font. */
+/* Buttons are always Zichtbaar, even where a component sets its own font.
+   That includes things that act as buttons but aren't <button> tags:
+   the sidebar links and the filter pills. */
 button,
+button *,
 .btn,
 [role="button"],
 input[type="button"],
-input[type="submit"] {
+input[type="submit"],
+.sidebar .nav-item,
+.sidebar .nav-item *,
+.upcoming-pill {
   font-family: var(--font-button), "Helvetica Neue", sans-serif !important;
 }
 

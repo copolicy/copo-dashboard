@@ -6,7 +6,7 @@ Pinned to Next.js 15.5.20 (stable), not the latest 16.x line. This project was b
 
 # Typography rules (from Nicole)
 
-- Every button uses **Zichtbaar** (Regular and Demibold, self-hosted in `public/fonts`). This includes new buttons: don't give a button its own font-family.
+- Every button uses **Zichtbaar** (Regular and Demibold, self-hosted in `public/fonts`). This includes new buttons and anything that acts as one (sidebar links, filter pills): don't give a button its own font-family.
 - All serif text uses **Kleisch LL** (Light and Light Italic, self-hosted). Don't bring back Frank Ruhl Libre or other serifs.
 - Headers and subtitles stay in Manrope, all caps.
 
